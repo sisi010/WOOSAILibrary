@@ -1,0 +1,12 @@
+# WOOSAILibrary - Helper Library for Output Optimization
+# Users manage their own OpenAI API keys
+
+# Core Dependencies (Lightweight)
+tiktoken==0.5.2
+
+# Optional - Only for testing/examples
+openai==1.3.0
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.3

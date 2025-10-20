@@ -1,0 +1,1589 @@
+{
+  "timestamp": "2025-10-11T17:07:50.734957",
+  "summary": {
+    "total_requests": 40,
+    "successful": 40,
+    "failed": 0,
+    "total_tokens": 16678,
+    "total_cost": 0.0091914,
+    "total_time": 0.0,
+    "compression_savings": 94
+  },
+  "results": [
+    {
+      "success": true,
+      "message": "안녕하세요",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 3.544325828552246,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 9,
+          "output": 10,
+          "total": 19,
+          "estimated_input": 4,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 7.35e-06,
+          "estimated_usd": 3.06e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.77,
+        "timestamp": "2025-10-11T07:59:58.688528",
+        "compression": {
+          "tokens_saved": 1,
+          "savings_percent": 20.0,
+          "time_ms": 0.28
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "감사합니다",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 3.981295585632324,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 9,
+          "output": 23,
+          "total": 32,
+          "estimated_input": 3,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 1.515e-05,
+          "estimated_usd": 3.045e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.64,
+        "timestamp": "2025-10-11T08:00:03.171981",
+        "compression": {
+          "tokens_saved": 1,
+          "savings_percent": 25.0,
+          "time_ms": 0.18
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "도움이 필요해요",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 3.876692056655884,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 13,
+          "output": 24,
+          "total": 37,
+          "estimated_input": 8,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 1.635e-05,
+          "estimated_usd": 3.12e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.81,
+        "timestamp": "2025-10-11T08:00:07.551876",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.31
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "Python이란?",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 6.768422842025757,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 11,
+          "output": 325,
+          "total": 336,
+          "estimated_input": 5,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00019665,
+          "estimated_usd": 3.075e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.78,
+        "timestamp": "2025-10-11T08:00:14.820812",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.27
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "AI 설명해줘",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 7.930365562438965,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 11,
+          "output": 290,
+          "total": 301,
+          "estimated_input": 6,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00017565,
+          "estimated_usd": 3.09e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.52,
+        "timestamp": "2025-10-11T08:00:23.251701",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.36
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "날씨 어때?",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 4.241525411605835,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 12,
+          "output": 56,
+          "total": 68,
+          "estimated_input": 10,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 3.54e-05,
+          "estimated_usd": 3.15e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.74,
+        "timestamp": "2025-10-11T08:00:27.990546",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.24
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "시간 알려줘",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 3.6516616344451904,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 10,
+          "output": 36,
+          "total": 46,
+          "estimated_input": 8,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 2.31e-05,
+          "estimated_usd": 3.12e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.68,
+        "timestamp": "2025-10-11T08:00:32.149181",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.24
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "추천해줘",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 3.573298215866089,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 10,
+          "output": 37,
+          "total": 47,
+          "estimated_input": 7,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 2.37e-05,
+          "estimated_usd": 3.105e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.75,
+        "timestamp": "2025-10-11T08:00:36.223316",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.26
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "괜찮아?",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 3.905306100845337,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 12,
+          "output": 17,
+          "total": 29,
+          "estimated_input": 7,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 1.2e-05,
+          "estimated_usd": 3.105e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 8.6,
+        "timestamp": "2025-10-11T08:00:40.631370",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.16
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "고마워",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 3.1830265522003174,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 10,
+          "output": 16,
+          "total": 26,
+          "estimated_input": 5,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 1.11e-05,
+          "estimated_usd": 3.075e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.74,
+        "timestamp": "2025-10-11T08:00:44.316227",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.27
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "인공지능의 역사와 발전 과정에 대해 간단히 설명해주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 19.7983877658844,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 22,
+          "output": 571,
+          "total": 593,
+          "estimated_input": 27,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.0003459,
+          "estimated_usd": 3.405e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.08,
+        "timestamp": "2025-10-11T08:01:04.616450",
+        "compression": {
+          "tokens_saved": 2,
+          "savings_percent": 6.9,
+          "time_ms": 0.46
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "Python으로 웹 크롤링하는 방법을 알려주세요. 기본적인 예제 코드도 포함해주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 11.64463210105896,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 28,
+          "output": 592,
+          "total": 620,
+          "estimated_input": 36,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 0.0003594,
+          "estimated_usd": 9.54e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.23,
+        "timestamp": "2025-10-11T08:01:16.762008",
+        "compression": {
+          "tokens_saved": -1,
+          "savings_percent": -2.86,
+          "time_ms": 0.59
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "머신러닝과 딥러닝의 차이점을 비교해서 설명해주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 13.44465970993042,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 20,
+          "output": 656,
+          "total": 676,
+          "estimated_input": 20,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.0003966,
+          "estimated_usd": 3.3e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.99,
+        "timestamp": "2025-10-11T08:01:30.708330",
+        "compression": {
+          "tokens_saved": 9,
+          "savings_percent": 31.03,
+          "time_ms": 0.42
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "FastAPI로 REST API 만드는 방법을 단계별로 알려주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 15.51876163482666,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 21,
+          "output": 771,
+          "total": 792,
+          "estimated_input": 26,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00046575,
+          "estimated_usd": 3.39e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.04,
+        "timestamp": "2025-10-11T08:01:46.729356",
+        "compression": {
+          "tokens_saved": -1,
+          "savings_percent": -4.0,
+          "time_ms": 0.46
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "MongoDB와 PostgreSQL의 장단점을 비교해주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 24.563258409500122,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 19,
+          "output": 883,
+          "total": 902,
+          "estimated_input": 18,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00053265,
+          "estimated_usd": 3.27e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.03,
+        "timestamp": "2025-10-11T08:02:11.792617",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.45
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "효율적인 시간 관리 방법 5가지를 추천해주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 9.58558702468872,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 21,
+          "output": 363,
+          "total": 384,
+          "estimated_input": 26,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00022095,
+          "estimated_usd": 3.39e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.31,
+        "timestamp": "2025-10-11T08:02:21.882177",
+        "compression": {
+          "tokens_saved": -1,
+          "savings_percent": -4.0,
+          "time_ms": 0.6
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "건강한 아침 식사 메뉴를 3가지 제안해주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 9.131911039352417,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 23,
+          "output": 314,
+          "total": 337,
+          "estimated_input": 26,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00019185,
+          "estimated_usd": 3.39e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.06,
+        "timestamp": "2025-10-11T08:02:31.515406",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.44
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "초보자를 위한 운동 루틴을 추천해주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 12.821769714355469,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 19,
+          "output": 449,
+          "total": 468,
+          "estimated_input": 24,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00027225,
+          "estimated_usd": 3.36e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.98,
+        "timestamp": "2025-10-11T08:02:44.838064",
+        "compression": {
+          "tokens_saved": -1,
+          "savings_percent": -4.35,
+          "time_ms": 0.4
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "영어 공부 효과적인 방법을 알려주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 14.3419771194458,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 17,
+          "output": 436,
+          "total": 453,
+          "estimated_input": 23,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00026415,
+          "estimated_usd": 3.345e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.99,
+        "timestamp": "2025-10-11T08:02:59.683056",
+        "compression": {
+          "tokens_saved": -1,
+          "savings_percent": -4.55,
+          "time_ms": 0.41
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "스트레스 관리 방법을 구체적으로 설명해주세요.",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 20.344375371932983,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 19,
+          "output": 700,
+          "total": 719,
+          "estimated_input": 20,
+          "estimated_output": 50
+        },
+        "cost": {
+          "actual_usd": 0.00042285,
+          "estimated_usd": 3.3e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.09,
+        "timestamp": "2025-10-11T08:03:20.529010",
+        "compression": {
+          "tokens_saved": -1,
+          "savings_percent": -5.26,
+          "time_ms": 0.48
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "양자컴퓨팅의 원리를 자세히 설명해주세요. 큐비트의 개념, 중첩과 얽힘 현상, 양자 게이트의...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 19.69209885597229,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 117,
+          "output": 783,
+          "total": 900,
+          "estimated_input": 132,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.00048735,
+          "estimated_usd": 0.0001998,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 2.39,
+        "timestamp": "2025-10-11T08:03:40.723999",
+        "compression": {
+          "tokens_saved": 8,
+          "savings_percent": 5.71,
+          "time_ms": 1.41
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "블록체인 기술의 작동 원리와 실제 활용 사례를 설명해주세요. 합의 알고리즘, 스마트 컨트랙...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 15.833131551742554,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 91,
+          "output": 581,
+          "total": 672,
+          "estimated_input": 114,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.00036225,
+          "estimated_usd": 0.0001971,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.36,
+        "timestamp": "2025-10-11T08:03:57.057688",
+        "compression": {
+          "tokens_saved": 5,
+          "savings_percent": 4.2,
+          "time_ms": 1.09
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "클라우드 컴퓨팅의 발전 과정과 주요 서비스 모델을 설명해주세요. IaaS, PaaS, Sa...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 25.017784357070923,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 106,
+          "output": 976,
+          "total": 1082,
+          "estimated_input": 121,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.0006015,
+          "estimated_usd": 0.00019815,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 2.12,
+        "timestamp": "2025-10-11T08:04:22.576409",
+        "compression": {
+          "tokens_saved": -1,
+          "savings_percent": -0.83,
+          "time_ms": 1.2
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "딥러닝의 주요 아키텍처들을 비교 분석해주세요. CNN, RNN, LSTM, Transfor...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 24.305251359939575,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 89,
+          "output": 836,
+          "total": 925,
+          "estimated_input": 104,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.00051495,
+          "estimated_usd": 0.0001956,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 2.03,
+        "timestamp": "2025-10-11T08:04:47.382761",
+        "compression": {
+          "tokens_saved": 3,
+          "savings_percent": 2.8,
+          "time_ms": 1.12
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "사이버 보안의 주요 위협과 대응 방안을 설명해주세요. 랜섬웨어, 피싱, DDoS 공격 등의...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 17.344816207885742,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 101,
+          "output": 557,
+          "total": 658,
+          "estimated_input": 115,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.00034935,
+          "estimated_usd": 0.00019725,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 2.12,
+        "timestamp": "2025-10-11T08:05:05.229450",
+        "compression": {
+          "tokens_saved": 3,
+          "savings_percent": 2.54,
+          "time_ms": 1.2
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "빅데이터 분석 기술과 도구를 상세히 설명해주세요. Hadoop, Spark의 구조와 차이점...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 18.961819410324097,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 91,
+          "output": 807,
+          "total": 898,
+          "estimated_input": 98,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 0.00049785,
+          "estimated_usd": 0.0001047,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.99,
+        "timestamp": "2025-10-11T08:05:24.693840",
+        "compression": {
+          "tokens_saved": 10,
+          "savings_percent": 9.26,
+          "time_ms": 1.1
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "DevOps 문화와 실천 방법을 자세히 설명해주세요. CI/CD 파이프라인 구축, 컨테이너...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 21.898360013961792,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 99,
+          "output": 750,
+          "total": 849,
+          "estimated_input": 111,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.00046485,
+          "estimated_usd": 0.00019665,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.98,
+        "timestamp": "2025-10-11T08:05:47.093469",
+        "compression": {
+          "tokens_saved": -1,
+          "savings_percent": -0.91,
+          "time_ms": 1.08
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "자율주행 기술의 현황과 미래를 분석해주세요. 센서 기술, 딥러닝 기반 객체 인식, 경로 계...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 27.680691719055176,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 100,
+          "output": 806,
+          "total": 906,
+          "estimated_input": 117,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.0004986,
+          "estimated_usd": 0.00019755,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 2.02,
+        "timestamp": "2025-10-11T08:06:15.271456",
+        "compression": {
+          "tokens_saved": 15,
+          "savings_percent": 11.36,
+          "time_ms": 1.08
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "메타버스 생태계와 기술 스택을 상세히 설명해주세요. VR/AR/XR 기술, 3D 모델링과 ...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 16.617974042892456,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 112,
+          "output": 575,
+          "total": 687,
+          "estimated_input": 129,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.0003618,
+          "estimated_usd": 0.00019935,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.74,
+        "timestamp": "2025-10-11T08:06:32.395376",
+        "compression": {
+          "tokens_saved": 9,
+          "savings_percent": 6.52,
+          "time_ms": 0.5
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "지속 가능한 기술(Green IT)의 중요성과 실천 방안을 설명해주세요. 데이터센터 에너지...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 14.79832649230957,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 108,
+          "output": 517,
+          "total": 625,
+          "estimated_input": 117,
+          "estimated_output": 300
+        },
+        "cost": {
+          "actual_usd": 0.0003264,
+          "estimated_usd": 0.00019755,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.59,
+        "timestamp": "2025-10-11T08:06:47.694712",
+        "compression": {
+          "tokens_saved": 9,
+          "savings_percent": 7.14,
+          "time_ms": 0.44
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "2024년 1월 1일부터 12월 31일까지의 매출은 1500000원이고, 비용은 85000...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 5.079607725143433,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 71,
+          "output": 103,
+          "total": 174,
+          "estimated_input": 59,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 7.245e-05,
+          "estimated_usd": 9.885e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.88,
+        "timestamp": "2025-10-11T08:06:53.275486",
+        "compression": {
+          "tokens_saved": 8,
+          "savings_percent": 11.94,
+          "time_ms": 0.43
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "2023년도 총 매출액은 5000000원, 2024년도는 7500000원입니다. 증가율 계...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 8.459585666656494,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 36,
+          "output": 238,
+          "total": 274,
+          "estimated_input": 43,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 0.0001482,
+          "estimated_usd": 9.645e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.64,
+        "timestamp": "2025-10-11T08:07:02.235562",
+        "compression": {
+          "tokens_saved": 2,
+          "savings_percent": 4.44,
+          "time_ms": 0.33
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "프로젝트 예산: 10000000원, 실제 지출: 8500000원. 절감액은? ㅎㅎㅎㅎㅎ",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 5.173428058624268,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 35,
+          "output": 111,
+          "total": 146,
+          "estimated_input": 34,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 7.185e-05,
+          "estimated_usd": 9.51e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.32,
+        "timestamp": "2025-10-11T08:07:07.908359",
+        "compression": {
+          "tokens_saved": 12,
+          "savings_percent": 26.09,
+          "time_ms": 0.66
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "ㅋㅋㅋㅋㅋ 완전 대박!!! 2024년 목표 달성률 150%!!! 감사합니다!!!",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 5.368221998214722,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 31,
+          "output": 76,
+          "total": 107,
+          "estimated_input": 35,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 5.025e-05,
+          "estimated_usd": 9.525e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.32,
+        "timestamp": "2025-10-11T08:07:13.779357",
+        "compression": {
+          "tokens_saved": 5,
+          "savings_percent": 12.5,
+          "time_ms": 0.66
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "회의 일정: 2024년 3월 15일 오후 2시. 참석자: 5명. 예상 시간: 2시간. ㅇㅋ...",
+      "strategy": "auto",
+      "compress": true,
+      "response_time": 4.750281572341919,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": true,
+        "schema_applied": false,
+        "tokens": {
+          "input": 67,
+          "output": 61,
+          "total": 128,
+          "estimated_input": 54,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 4.665e-05,
+          "estimated_usd": 9.81e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 1.58,
+        "timestamp": "2025-10-11T08:07:19.029421",
+        "compression": {
+          "tokens_saved": 0,
+          "savings_percent": 0.0,
+          "time_ms": 0.81
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "2024년 1월 1일부터 12월 31일까지의 매출은 1500000원이고, 비용은 85000...",
+      "strategy": "auto",
+      "compress": false,
+      "response_time": 5.506009340286255,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": false,
+        "schema_applied": false,
+        "tokens": {
+          "input": 71,
+          "output": 88,
+          "total": 159,
+          "estimated_input": 67,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 6.345e-05,
+          "estimated_usd": 0.00010005,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.91,
+        "timestamp": "2025-10-11T08:07:25.035075"
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "2023년도 총 매출액은 5000000원, 2024년도는 7500000원입니다. 증가율 계...",
+      "strategy": "auto",
+      "compress": false,
+      "response_time": 7.613271236419678,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": false,
+        "schema_applied": false,
+        "tokens": {
+          "input": 38,
+          "output": 224,
+          "total": 262,
+          "estimated_input": 45,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 0.0001401,
+          "estimated_usd": 9.675e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.77,
+        "timestamp": "2025-10-11T08:07:33.149821"
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "프로젝트 예산: 10000000원, 실제 지출: 8500000원. 절감액은? ㅎㅎㅎㅎㅎ",
+      "strategy": "auto",
+      "compress": false,
+      "response_time": 5.033763647079468,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": false,
+        "schema_applied": false,
+        "tokens": {
+          "input": 37,
+          "output": 103,
+          "total": 140,
+          "estimated_input": 46,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 6.735e-05,
+          "estimated_usd": 9.69e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.79,
+        "timestamp": "2025-10-11T08:07:38.684714"
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "ㅋㅋㅋㅋㅋ 완전 대박!!! 2024년 목표 달성률 150%!!! 감사합니다!!!",
+      "strategy": "auto",
+      "compress": false,
+      "response_time": 6.470080852508545,
+      "optimization": {
+        "strategy_used": "starter",
+        "tier": "free",
+        "compression_enabled": false,
+        "schema_applied": false,
+        "tokens": {
+          "input": 29,
+          "output": 58,
+          "total": 87,
+          "estimated_input": 40,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 3.915e-05,
+          "estimated_usd": 9.6e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 2000,
+          "temperature": 0.7,
+          "top_p": null,
+          "frequency_penalty": null,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.8,
+        "timestamp": "2025-10-11T08:07:45.653966"
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "message": "회의 일정: 2024년 3월 15일 오후 2시. 참석자: 5명. 예상 시간: 2시간. ㅇㅋ...",
+      "strategy": "auto",
+      "compress": false,
+      "response_time": 4.074334621429443,
+      "optimization": {
+        "strategy_used": "pro",
+        "tier": "paid",
+        "compression_enabled": false,
+        "schema_applied": false,
+        "tokens": {
+          "input": 67,
+          "output": 47,
+          "total": 114,
+          "estimated_input": 54,
+          "estimated_output": 150
+        },
+        "cost": {
+          "actual_usd": 3.825e-05,
+          "estimated_usd": 9.81e-05,
+          "model": "gpt-4o-mini"
+        },
+        "parameters": {
+          "max_tokens": 1300,
+          "temperature": 0.5,
+          "top_p": 0.9,
+          "frequency_penalty": 0.3,
+          "presence_penalty": null
+        },
+        "processing_time_ms": 0.92,
+        "timestamp": "2025-10-11T08:07:50.230623"
+      },
+      "error": null
+    }
+  ]
+}
