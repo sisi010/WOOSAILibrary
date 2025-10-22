@@ -1,2 +1,5 @@
-# app/routers/__init__.py
-# Empty file to make routers a package
+"""
+API Routers Package
+"""
+
+# Empty init file for routers package

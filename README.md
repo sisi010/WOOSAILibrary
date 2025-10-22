@@ -1,10 +1,11 @@
 # WOOSAILibrary
 
-🚀 AI 비용 최적화 라이브러리 - OpenAI API 비용을 최대 61% 절감
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![GitHub Stars](https://img.shields.io/github/stars/sisi010/WOOSAILibrary.svg)](https://github.com/sisi010/WOOSAILibrary/stargazers)
 
+🚀 AI 비용 최적화 라이브러리 - OpenAI API 비용을 최대 61% 절감
+...
 ## 🎯 주요 기능
 
 - 🆓 **무료 플랜**: 기본 최적화로 17% 비용 절감
