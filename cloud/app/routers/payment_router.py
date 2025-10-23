@@ -19,7 +19,7 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 # Pricing (in cents)
 PLANS = {
     'free': {'price': 0, 'name': 'Free Plan', 'duration_days': 365},
-    'premium': {'price': 2900, 'name': 'Premium Plan', 'duration_days': 30}  # $29.00
+    'premium': {'price': 900, 'name': 'Premium Plan', 'duration_days': 30}  # $9.00
 }
 
 @payment_bp.route('/create-checkout-session', methods=['POST'])

@@ -1,81 +1,50 @@
 # -*- coding: utf-8 -*-
 """
 WOOSAILibrary - AI Output Token Optimizer
-Reduce AI API costs by optimizing input/output tokens
+Version: 1.1.0
 
-Main Features:
-- Input compression (Korean idioms, numbers, patterns)
-- Output optimization (prompt engineering, structured outputs)
-- Cost reduction: Up to 78.5% savings
-- Speed improvement: Up to 79% faster
-
-Usage:
-    from woosai import WoosAI
-    
-    # First time - auto license generation
-    client = WoosAI()  # Will prompt for email, auto-generate free license
-    
-    # Optimize OpenAI API call
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": "Your question"}],
-        strategy="starter"  # or "pro", "premium"
-    )
-
-Author: WoosAI Team
-Version: 1.0.1
+Features:
+- Input/Output optimization
+- Advanced caching with LRU
+- Usage statistics tracking
+- Up to 88% cost savings
 """
 
 import os
 import json
 import requests
+import tiktoken
 from pathlib import Path
 from typing import Optional, Dict, Any
 from openai import OpenAI
 
-# Import optimizers
-# Import optimizers
+# Import core modules
 from .core.lightweight_input import get_compressor
 from .core.prompt_optimizer import get_prompt_optimizer
+from .core.stats_tracker import StatsTracker
+from .core.cache_manager import CacheManager
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 __all__ = ['WoosAI', '__version__']
 
 
 class LicenseManager:
-    """
-    Manage WoosAI license locally
-    
-    Features:
-    - Auto-generate free license with email only
-    - Save license to local config file (~/.woosai/config.json)
-    - Auto-load license on next use
-    - Verify license with backend API
-    """
+    """Manage WoosAI license locally"""
     
     CONFIG_DIR = Path.home() / '.woosai'
     CONFIG_FILE = CONFIG_DIR / 'config.json'
     API_BASE_URL = 'https://woosai-backend-production.up.railway.app/api'
     
     def __init__(self):
-        """Initialize license manager"""
         self.config_dir = self.CONFIG_DIR
         self.config_file = self.CONFIG_FILE
         self.api_base_url = self.API_BASE_URL
-        
-        # Create config directory if not exists
         self.config_dir.mkdir(parents=True, exist_ok=True)
     
     def load_license(self) -> Optional[Dict[str, Any]]:
-        """
-        Load license from local config file
-        
-        Returns:
-            dict: License data or None if not found
-        """
+        """Load license from file"""
         if not self.config_file.exists():
             return None
-        
         try:
             with open(self.config_file, 'r', encoding='utf-8') as f:
                 config = json.load(f)
@@ -85,46 +54,21 @@ class LicenseManager:
             return None
     
     def save_license(self, license_data: Dict[str, Any]) -> bool:
-        """
-        Save license to local config file
-        
-        Args:
-            license_data: License information to save
-            
-        Returns:
-            bool: True if successful
-        """
+        """Save license to file"""
         try:
-            config = {
-                'license': license_data,
-                'version': __version__
-            }
-            
+            config = {'license': license_data, 'version': __version__}
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=2)
-            
             return True
         except Exception as e:
             print(f"Warning: Failed to save license: {e}")
             return False
     
     def request_free_license(self, email: str) -> Optional[Dict[str, Any]]:
-        """
-        Request free license from backend API
-        
-        Args:
-            email: User email address
-            
-        Returns:
-            dict: License data or None if failed
-        """
+        """Request free license from API"""
         try:
             url = f"{self.api_base_url}/licenses/request-free"
-            response = requests.post(
-                url,
-                json={'email': email},
-                timeout=10
-            )
+            response = requests.post(url, json={'email': email}, timeout=10)
             
             if response.status_code in [200, 201]:
                 data = response.json()
@@ -139,110 +83,40 @@ class LicenseManager:
                 error_msg = response.json().get('error', 'Unknown error')
                 print(f"Error: {error_msg}")
                 return None
-        
-        except requests.exceptions.RequestException as e:
-            print(f"Network error: {e}")
-            print("Please check your internet connection and try again.")
-            return None
         except Exception as e:
             print(f"Error requesting license: {e}")
             return None
     
-    def verify_license(self, license_key: str) -> bool:
-        """
-        Verify license with backend API
-        
-        Args:
-            license_key: License key to verify
-            
-        Returns:
-            bool: True if valid
-        """
-        try:
-            url = f"{self.api_base_url}/licenses/verify"
-            response = requests.post(
-                url,
-                json={'license_key': license_key},
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                return data.get('valid', False)
-            else:
-                return False
-        
-        except Exception:
-            # If verification fails, allow offline usage
-            return True
-    
     def get_or_create_license(self) -> Optional[Dict[str, Any]]:
-        """
-        Get existing license or create new one
-        
-        Returns:
-            dict: License data or None if failed
-        """
-        # Try to load existing license
+        """Get existing license or create new one"""
         license_data = self.load_license()
         
         if license_data:
             print(f"✓ Loaded license: {license_data['plan'].upper()}")
             return license_data
         
-        # No license found - request email and generate
         print("\n" + "="*60)
         print("🎉 Welcome to WoosAI Library!")
         print("="*60)
-        print("\nTo get started, we'll generate a FREE license for you.")
-        print("This takes just a few seconds and requires only your email.\n")
+        print("\nGenerating FREE license...\n")
         
         while True:
             email = input("📧 Enter your email: ").strip()
             
-            if not email:
-                print("❌ Email cannot be empty. Please try again.\n")
+            if not email or '@' not in email:
+                print("❌ Invalid email. Try again.\n")
                 continue
             
-            if '@' not in email or '.' not in email:
-                print("❌ Invalid email format. Please try again.\n")
-                continue
-            
-            print("\n⏳ Generating free license...")
+            print("\n⏳ Generating license...")
             license_data = self.request_free_license(email)
             
             if license_data:
-                # Save license locally
                 self.save_license(license_data)
-                
-                print("\n" + "="*60)
-                print("✅ SUCCESS! Free license generated!")
-                print("="*60)
-                print(f"\n📋 License Key: {license_data['license_key']}")
-                print(f"📅 Valid until: {license_data['expires_at'][:10]}")
-                print(f"💳 Plan: {license_data['plan'].upper()}")
-                print(f"\n💾 License saved to: {self.config_file}")
-                print("\n🚀 You're all set! Starting WoosAI...\n")
-                
-                # Premium 안내 추가
-                print("="*60)
-                print("💎 Want MORE Savings?")
-                print("="*60)
-                print("\n📊 Your FREE Plan:")
-                print("  ✓ STARTER strategy")
-                print("  ✓ ~20% cost savings")
-                print("  ✓ Perfect for getting started!\n")
-                print("🌟 Upgrade to PREMIUM ($9/month):")
-                print("  ⚡ PRO + PREMIUM strategies")
-                print("  ⚡ Up to 88% cost savings")
-                print("  ⚡ Priority support")
-                print("  ⚡ ROI: 2,900% for app developers\n")
-                print("🔗 Upgrade now: https://woos-ai.com/upgrade")
-                print("="*60 + "\n")
-                
+                print("\n✅ SUCCESS! License generated!")
+                print(f"📋 Key: {license_data['license_key']}")
+                print(f"💾 Saved to: {self.config_file}\n")
                 return license_data
             else:
-                print("\n❌ Failed to generate license. Please try again.\n")
                 retry = input("Try again? (y/n): ").strip().lower()
                 if retry != 'y':
                     return None
@@ -250,140 +124,173 @@ class LicenseManager:
 
 class WoosAI:
     """
-    WoosAI Client - Optimized OpenAI API Wrapper
-    
-    Features:
-    - Auto license management (free tier)
-    - Input compression
-    - Output optimization
-    - Cost reduction: Up to 78.5%
-    - Speed improvement: Up to 79%
+    WoosAI - AI Cost Optimization Library
     
     Usage:
-        from woosai import WoosAI
-        
-        client = WoosAI()  # Auto license generation
-        
+        client = WoosAI(cache=True)
         response = client.chat.completions.create(
             model="gpt-4",
-            messages=[{"role": "user", "content": "Hello"}],
-            strategy="starter"
+            messages=[{"role": "user", "content": "Hello"}]
         )
     """
     
-    def __init__(self, api_key: Optional[str] = None, license_key: Optional[str] = None):
+    def __init__(self, 
+                 api_key: Optional[str] = None, 
+                 license_key: Optional[str] = None,
+                 cache: bool = False,
+                 cache_ttl: int = 24,
+                 max_cache_size: int = 1000,
+                 auto_cleanup_interval: int = 100):
         """
-        Initialize WoosAI client
+        Initialize WoosAI
         
         Args:
-            api_key: OpenAI API key (if not provided, uses OPENAI_API_KEY env var)
-            license_key: WoosAI license key (if not provided, auto-generates free license)
+            api_key: OpenAI API key
+            license_key: WoosAI license key
+            cache: Enable caching (default: False)
+            cache_ttl: Cache TTL in hours (default: 24)
+            max_cache_size: Max cache entries (default: 1000)
+            auto_cleanup_interval: Auto cleanup interval (default: 100)
         """
-        # Initialize license manager
+        # License
         self.license_manager = LicenseManager()
-        
-        # Get or create license
         if license_key:
             self.license_data = {'license_key': license_key, 'plan': 'unknown'}
         else:
             self.license_data = self.license_manager.get_or_create_license()
-            
             if not self.license_data:
-                raise Exception("Failed to initialize license. Please try again.")
+                raise Exception("Failed to initialize license")
         
-        # Initialize OpenAI client
+        # OpenAI
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
         if not self.api_key:
-            raise ValueError(
-                "OpenAI API key not found. Please provide it via:\n"
-                "1. WoosAI(api_key='your-key')\n"
-                "2. Environment variable: OPENAI_API_KEY"
-            )
-        
+            raise ValueError("OpenAI API key not found")
         self.client = OpenAI(api_key=self.api_key)
         
-        # Initialize optimizers
+        # Optimizers
         self.compressor = get_compressor()
         self.prompt_optimizer = get_prompt_optimizer()
         
-        # Create chat completions wrapper
+        # Stats
+        self.stats_tracker = StatsTracker()
+        
+        # Cache
+        self.cache_enabled = cache
+        self.cache_manager = None
+        if cache:
+            self.cache_manager = CacheManager(
+                ttl_hours=cache_ttl,
+                max_size=max_cache_size,
+                auto_cleanup_interval=auto_cleanup_interval
+            )
+        
+        # Chat wrapper
         self.chat = ChatCompletions(self)
+        
+        cache_status = "ENABLED" if cache else "DISABLED"
+        print(f"✓ WoosAI v{__version__} initialized (Cache: {cache_status})")
     
     def get_plan(self) -> str:
-        """Get current plan (free/premium)"""
+        """Get current plan"""
         return self.license_data.get('plan', 'free')
     
-    def upgrade_info(self):
-        """Show upgrade information"""
-        print("\n" + "="*60)
-        print("🚀 Upgrade to Premium")
-        print("="*60)
-        print("\n📊 Free Plan Limitations:")
-        print("  • Strategy: STARTER only")
-        print("  • Savings: ~20%")
-        print("  • Support: Community")
-        print("\n✨ Premium Plan Benefits:")
-        print("  • Strategy: PRO + PREMIUM")
-        print("  • Savings: Up to 88%")
-        print("  • Support: Priority")
-        print("  • Price: $9.99/month")
-        print("\n🔗 Upgrade now: https://woos-ai.com/upgrade")
-        print("="*60 + "\n")
+    # Stats methods
+    def get_today_stats(self):
+        """Get today's stats"""
+        return self.stats_tracker.get_today_stats()
+    
+    def get_monthly_stats(self):
+        """Get monthly stats"""
+        return self.stats_tracker.get_monthly_stats()
+    
+    def get_total_stats(self):
+        """Get total stats"""
+        return self.stats_tracker.get_total_stats()
+    
+    def display_stats(self):
+        """Display stats"""
+        self.stats_tracker.display_stats()
+    
+    # Cache methods
+    def get_cache_info(self):
+        """Get cache info"""
+        if not self.cache_enabled:
+            print("⚠️  Cache disabled")
+            return None
+        return self.cache_manager.get_cache_info()
+    
+    def get_cache_stats(self):
+        """Get cache stats"""
+        if not self.cache_enabled:
+            print("⚠️  Cache disabled")
+            return None
+        return self.cache_manager.get_stats()
+    
+    def display_cache_stats(self):
+        """Display cache stats"""
+        if not self.cache_enabled:
+            print("⚠️  Cache disabled")
+            return
+        self.cache_manager.display_stats()
+    
+    def clear_cache(self):
+        """Clear all cache"""
+        if self.cache_enabled:
+            self.cache_manager.clear()
+    
+    def clear_cache_by_pattern(self, pattern: str):
+        """Clear cache by pattern"""
+        if self.cache_enabled:
+            return self.cache_manager.clear_by_pattern(pattern)
+    
+    def clear_expired_cache(self):
+        """Clear expired cache"""
+        if self.cache_enabled:
+            return self.cache_manager.clear_expired()
+    
+    def clear_old_cache(self, days: int = 7):
+        """Clear old cache"""
+        if self.cache_enabled:
+            return self.cache_manager.clear_old_entries(days)
 
 
 class ChatCompletions:
-    """
-    Chat completions wrapper with optimization
-    """
+    """Chat completions wrapper"""
     
     def __init__(self, woosai_client):
-        """Initialize with WoosAI client"""
         self.woosai = woosai_client
-        self.completions = self  # For compatibility with OpenAI SDK
+        self.completions = self
     
     def create(self, 
                model: str,
                messages: list,
-               strategy: str = "starter",
                optimize_input: bool = True,
                optimize_output: bool = True,
                **kwargs) -> Any:
-        """
-        Create chat completion with optimization
+        """Create chat completion"""
         
-        Args:
-            model: OpenAI model name (e.g., "gpt-4", "gpt-3.5-turbo")
-            messages: Chat messages list
-            strategy: Optimization strategy ("starter", "pro", "premium")
-            optimize_input: Enable input compression
-            optimize_output: Enable output optimization
-            **kwargs: Additional OpenAI API parameters
-            
-        Returns:
-            OpenAI ChatCompletion response
-        """
-        # Check plan restrictions
-        plan = self.woosai.get_plan()
+        # Check cache
+        if self.woosai.cache_enabled:
+            cached = self.woosai.cache_manager.get(model, messages, **kwargs)
+            if cached:
+                from types import SimpleNamespace
+                return SimpleNamespace(**cached)
         
-        if strategy in ["pro", "premium"] and plan == "free":
-            print(f"\n⚠️  '{strategy}' strategy requires Premium plan.")
-            print("    Using 'starter' strategy instead.\n")
-            self.woosai.upgrade_info()
-            strategy = "starter"
+        # Calculate original tokens
+        try:
+            encoder = tiktoken.encoding_for_model(model)
+            original_content = ' '.join([msg.get('content', '') for msg in messages if msg.get('role') == 'user'])
+            original_tokens = len(encoder.encode(original_content))
+        except:
+            original_tokens = 0
         
         # Optimize input
         if optimize_input:
             optimized_messages = []
             for msg in messages:
                 if msg['role'] == 'user':
-                    compressed_content, _ = self.woosai.compressor.compress(
-                        msg['content'],
-                        strategy=strategy
-                    )
-                    optimized_messages.append({
-                        'role': msg['role'],
-                        'content': compressed_content
-                    })
+                    compressed, _ = self.woosai.compressor.compress(msg['content'])
+                    optimized_messages.append({'role': msg['role'], 'content': compressed})
                 else:
                     optimized_messages.append(msg)
         else:
@@ -391,45 +298,54 @@ class ChatCompletions:
         
         # Optimize output
         if optimize_output:
-            # Add system prompt for output optimization
-            system_prompt = self.woosai.prompt_optimizer.get_system_prompt(
-                strategy=strategy
-            )
+            system_prompt = self.woosai.prompt_optimizer.get_system_prompt()
+            optimized_messages.insert(0, {'role': 'system', 'content': system_prompt})
             
-            # Insert system message at beginning
-            optimized_messages.insert(0, {
-                'role': 'system',
-                'content': system_prompt
-            })
-            
-            # Set max_tokens if not provided
             if 'max_tokens' not in kwargs:
-                kwargs['max_tokens'] = self.woosai.prompt_optimizer.get_max_tokens(strategy)
-            
-            # Set temperature if not provided
+                kwargs['max_tokens'] = self.woosai.prompt_optimizer.get_max_tokens()
             if 'temperature' not in kwargs:
-                kwargs['temperature'] = self.woosai.prompt_optimizer.get_temperature(strategy)
+                kwargs['temperature'] = self.woosai.prompt_optimizer.get_temperature()
         
-        # Call OpenAI API
+        # Call API
         response = self.woosai.client.chat.completions.create(
             model=model,
             messages=optimized_messages,
             **kwargs
         )
         
+        # Record stats
+        try:
+            tokens_input = response.usage.prompt_tokens
+            tokens_output = response.usage.completion_tokens
+            tokens_saved = max(0, original_tokens - tokens_input) if optimize_input else 0
+            
+            if 'gpt-4' in model.lower():
+                input_rate, output_rate = 0.03, 0.06
+            else:
+                input_rate, output_rate = 0.0015, 0.002
+            
+            cost_without = (original_tokens * input_rate + tokens_output * output_rate) / 1000
+            cost_with = (tokens_input * input_rate + tokens_output * output_rate) / 1000
+            
+            self.woosai.stats_tracker.record_request(
+                tokens_input=tokens_input,
+                tokens_output=tokens_output,
+                tokens_saved=tokens_saved,
+                cost_without=cost_without,
+                cost_with=cost_with,
+                strategy="basic"
+            )
+            
+            # Cache response
+            if self.woosai.cache_enabled:
+                self.woosai.cache_manager.set(model, messages, response, cost_with, **kwargs)
+        
+        except Exception as e:
+            print(f"Warning: Stats/cache error: {e}")
+        
         return response
 
 
-# Module-level convenience function
 def create_client(api_key: Optional[str] = None, license_key: Optional[str] = None) -> WoosAI:
-    """
-    Create WoosAI client (convenience function)
-    
-    Args:
-        api_key: OpenAI API key
-        license_key: WoosAI license key
-        
-    Returns:
-        WoosAI client instance
-    """
+    """Create WoosAI client"""
     return WoosAI(api_key=api_key, license_key=license_key)
