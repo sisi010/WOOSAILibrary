@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="woosailibrary",
-    version="1.0.0",
+    version="1.0.1",
     author="WoosAI Team",
     author_email="support@woosai.com",
-    description="AI cost optimization library - Save up to 61% on OpenAI API costs",
+    description="AI cost optimization library with auto free license - Save up to 88% on OpenAI API costs",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/woosai/woosailibrary",
@@ -30,6 +30,7 @@ setup(
         "openai>=1.3.0",
         "tiktoken>=0.5.2",
         "python-dotenv>=1.0.0",
+        "requests>=2.28.0",
     ],
-    keywords="ai, openai, cost-optimization, gpt, chatgpt, api, token, savings",
+    keywords="ai, openai, cost-optimization, gpt, chatgpt, api, token, savings, license, free",
 )
