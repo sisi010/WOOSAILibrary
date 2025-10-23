@@ -34,8 +34,9 @@ from typing import Optional, Dict, Any
 from openai import OpenAI
 
 # Import optimizers
-from .lightweight_input import get_compressor
-from .prompt_optimizer import get_prompt_optimizer
+# Import optimizers
+from .core.lightweight_input import get_compressor
+from .core.prompt_optimizer import get_prompt_optimizer
 
 __version__ = "1.0.1"
 __all__ = ['WoosAI', '__version__']
@@ -222,6 +223,22 @@ class LicenseManager:
                 print(f"💳 Plan: {license_data['plan'].upper()}")
                 print(f"\n💾 License saved to: {self.config_file}")
                 print("\n🚀 You're all set! Starting WoosAI...\n")
+                
+                # Premium 안내 추가
+                print("="*60)
+                print("💎 Want MORE Savings?")
+                print("="*60)
+                print("\n📊 Your FREE Plan:")
+                print("  ✓ STARTER strategy")
+                print("  ✓ ~20% cost savings")
+                print("  ✓ Perfect for getting started!\n")
+                print("🌟 Upgrade to PREMIUM ($9/month):")
+                print("  ⚡ PRO + PREMIUM strategies")
+                print("  ⚡ Up to 88% cost savings")
+                print("  ⚡ Priority support")
+                print("  ⚡ ROI: 2,900% for app developers\n")
+                print("🔗 Upgrade now: https://woos-ai.com/upgrade")
+                print("="*60 + "\n")
                 
                 return license_data
             else:
