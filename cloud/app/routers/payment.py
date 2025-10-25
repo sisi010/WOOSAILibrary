@@ -227,6 +227,7 @@ async def webhook_handler(
         event_name = data.get("meta", {}).get("event_name")
         
         print(f"📥 Webhook received: {event_name}")
+        print(f"🔍 Full webhook data: {json.dumps(data, indent=2)}")
         
         # Handle different events
         if event_name == "order_created":
@@ -259,10 +260,19 @@ async def webhook_handler(
 async def handle_order_created(data: dict):
     """Handle order_created event"""
     try:
+        print(f"🔍 ORDER DATA: {json.dumps(data, indent=2)}")
+        
         attributes = data.get("data", {}).get("attributes", {})
         
-        order_id = attributes.get("order_id")
-        email = attributes.get("user_email")
+        # Try multiple possible field names
+        order_id = (attributes.get("order_id") or 
+                   attributes.get("id") or 
+                   data.get("data", {}).get("id"))
+        
+        email = (attributes.get("user_email") or 
+                attributes.get("customer_email") or
+                attributes.get("email"))
+        
         total = attributes.get("total")
         
         print(f"✅ Order created: {order_id} for {email} - ${total}")
@@ -291,10 +301,19 @@ async def handle_order_created(data: dict):
 async def handle_subscription_created(data: dict):
     """Handle subscription_created event"""
     try:
+        print(f"🔍 SUBSCRIPTION DATA: {json.dumps(data, indent=2)}")
+        
         attributes = data.get("data", {}).get("attributes", {})
         
-        subscription_id = attributes.get("subscription_id")
-        email = attributes.get("user_email")
+        # Try multiple possible field names
+        subscription_id = (attributes.get("subscription_id") or 
+                          attributes.get("id") or
+                          data.get("data", {}).get("id"))
+        
+        email = (attributes.get("user_email") or 
+                attributes.get("customer_email") or
+                attributes.get("email"))
+        
         status = attributes.get("status")
         variant_name = attributes.get("variant_name")
         
@@ -440,9 +459,14 @@ async def handle_subscription_cancelled(data: dict):
 async def handle_payment_success(data: dict):
     """Handle subscription_payment_success event"""
     try:
+        print(f"🔍 PAYMENT SUCCESS DATA: {json.dumps(data, indent=2)}")
+        
         attributes = data.get("data", {}).get("attributes", {})
         
-        subscription_id = attributes.get("subscription_id")
+        # Try multiple possible field names
+        subscription_id = (attributes.get("subscription_id") or 
+                          attributes.get("id") or
+                          data.get("data", {}).get("id"))
         
         print(f"✅ Payment success for subscription: {subscription_id}")
         
@@ -492,10 +516,20 @@ async def handle_payment_success(data: dict):
 async def handle_license_key_created(data: dict):
     """Handle license_key_created event"""
     try:
+        print(f"🔍 LICENSE DATA: {json.dumps(data, indent=2)}")
+        
         attributes = data.get("data", {}).get("attributes", {})
         
-        license_key = attributes.get("key")
-        email = attributes.get("customer_email")
+        # Try multiple possible field names
+        license_key = (attributes.get("key") or 
+                      attributes.get("license_key"))
+        
+        email = (attributes.get("customer_email") or 
+                attributes.get("user_email") or
+                attributes.get("email"))
+        
+        # Get order_id to find email if not in license data
+        order_id = attributes.get("order_id")
         
         print(f"✅ License key created: {license_key} for {email}")
         
@@ -503,6 +537,14 @@ async def handle_license_key_created(data: dict):
         database = await get_database()
         licenses_collection = database["licenses"]
         users_collection = database["users"]
+        
+        # If email is None, try to find it from order_id
+        if not email and order_id:
+            orders_collection = database["orders"]
+            order = await orders_collection.find_one({"order_id": str(order_id)})
+            if order:
+                email = order.get("email")
+                print(f"📧 Found email from order: {email}")
         
         # Save license key
         license_doc = {
