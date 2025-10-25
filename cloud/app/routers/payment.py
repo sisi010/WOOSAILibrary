@@ -1,90 +1,113 @@
-# app/routers/payment.py (FastAPI version)
-
 """
-Lemon Squeezy Payment Integration for WoosAI Backend (FastAPI)
-
-Handles Premium subscription payments through Lemon Squeezy
+Lemon Squeezy Payment Router
+Handles Premium subscription payments via Lemon Squeezy
 """
 
-from fastapi import APIRouter, Request, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Request, Header
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-import requests
 import os
+import httpx
 import hmac
 import hashlib
+import json
 from datetime import datetime
 
-router = APIRouter(
-    prefix="/api/payment",
-    tags=["payment"]
-)
+router = APIRouter(prefix="/api/payment", tags=["payment"])
 
-# Lemon Squeezy configuration
-LEMON_API_KEY = os.getenv('LEMON_API_KEY')
-LEMON_STORE_ID = os.getenv('LEMON_STORE_ID')
-LEMON_PRODUCT_ID = os.getenv('LEMON_PRODUCT_ID')
-LEMON_WEBHOOK_SECRET = os.getenv('LEMON_WEBHOOK_SECRET')
-
-LEMON_API_BASE = "https://api.lemonsqueezy.com/v1"
+# Lemon Squeezy Configuration
+LEMON_API_KEY = os.getenv("LEMON_API_KEY")
+LEMON_STORE_ID = os.getenv("LEMON_STORE_ID")
+LEMON_VARIANT_ID = os.getenv("LEMON_VARIANT_ID")  # ← Variant ID!
+LEMON_WEBHOOK_SECRET = os.getenv("LEMON_WEBHOOK_SECRET")
+LEMON_API_URL = "https://api.lemonsqueezy.com/v1"
 
 
-# Pydantic models
+# Request/Response Models
 class CheckoutRequest(BaseModel):
     email: EmailStr
     license_key: str
 
 
-class CancelSubscriptionRequest(BaseModel):
-    subscription_id: str
+class CheckoutResponse(BaseModel):
+    success: bool
+    url: Optional[str] = None
+    detail: Optional[str] = None
 
 
-def get_headers():
-    """Get authorization headers for Lemon Squeezy API"""
-    return {
-        "Authorization": f"Bearer {LEMON_API_KEY}",
-        "Content-Type": "application/vnd.api+json",
-        "Accept": "application/vnd.api+json"
-    }
+class PriceResponse(BaseModel):
+    success: bool
+    price: float
+    currency: str
+    interval: str
+    name: str
 
 
-@router.post("/create-checkout")
-async def create_checkout(checkout_req: CheckoutRequest):
-    """
-    Create Lemon Squeezy checkout session for Premium upgrade
+class HealthResponse(BaseModel):
+    success: bool
+    service: str
+    provider: str
+    status: str
+    api_key_configured: bool
+    variant_id_configured: bool
+
+
+class SubscriptionResponse(BaseModel):
+    success: bool
+    subscription: Optional[dict] = None
+    detail: Optional[str] = None
+
+
+# Health Check
+@router.get("/health", response_model=HealthResponse)
+async def health_check():
+    """Check Lemon Squeezy payment service health"""
+    return HealthResponse(
+        success=True,
+        service="payment",
+        provider="lemon_squeezy",
+        status="ok",
+        api_key_configured=bool(LEMON_API_KEY),
+        variant_id_configured=bool(LEMON_VARIANT_ID)
+    )
+
+
+# Get Premium Price
+@router.get("/get-price", response_model=PriceResponse)
+async def get_price():
+    """Get Premium plan pricing information"""
+    return PriceResponse(
+        success=True,
+        price=9.0,
+        currency="USD",
+        interval="month",
+        name="Premium Plan"
+    )
+
+
+# Create Checkout Session
+@router.post("/create-checkout", response_model=CheckoutResponse)
+async def create_checkout(request: CheckoutRequest):
+    """Create Lemon Squeezy checkout session for Premium upgrade"""
     
-    Request body:
-        {
-            "email": "user@example.com",
-            "license_key": "WOOSAI-FREE-xxx"
-        }
+    if not all([LEMON_API_KEY, LEMON_STORE_ID, LEMON_VARIANT_ID]):
+        raise HTTPException(
+            status_code=500,
+            detail="Lemon Squeezy configuration incomplete"
+        )
     
-    Returns:
-        {
-            "success": true,
-            "url": "https://woosai.lemonsqueezy.com/checkout/..."
-        }
-    """
     try:
-        if not LEMON_API_KEY or not LEMON_PRODUCT_ID:
-            raise HTTPException(
-                status_code=500,
-                detail="Payment system not configured"
-            )
-        
-        # Create checkout session
+        # Prepare checkout data
         checkout_data = {
             "data": {
                 "type": "checkouts",
                 "attributes": {
                     "checkout_data": {
-                        "email": checkout_req.email,
+                        "email": request.email,
                         "custom": {
-                            "license_key": checkout_req.license_key
+                            "license_key": request.license_key
                         }
-                    },
-                    "expires_at": None,
-                    "preview": False
+                    }
                 },
                 "relationships": {
                     "store": {
@@ -92,256 +115,215 @@ async def create_checkout(checkout_req: CheckoutRequest):
                             "type": "stores",
                             "id": LEMON_STORE_ID
                         }
-                    } if LEMON_STORE_ID else None,
-                    "variant": {
+                    },
+                    "variant": {  # ← Use Variant!
                         "data": {
                             "type": "variants",
-                            "id": LEMON_PRODUCT_ID
+                            "id": LEMON_VARIANT_ID
                         }
                     }
                 }
             }
         }
         
-        # Remove store relationship if not provided
-        if not LEMON_STORE_ID:
-            del checkout_data["data"]["relationships"]["store"]
-        
-        response = requests.post(
-            f"{LEMON_API_BASE}/checkouts",
-            headers=get_headers(),
-            json=checkout_data
-        )
-        
-        if response.status_code in [200, 201]:
-            result = response.json()
-            checkout_url = result['data']['attributes']['url']
-            
-            return {
-                "success": True,
-                "url": checkout_url,
-                "checkout_id": result['data']['id']
-            }
-        else:
-            raise HTTPException(
-                status_code=response.status_code,
-                detail=f"Lemon Squeezy error: {response.text}"
+        # Call Lemon Squeezy API
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{LEMON_API_URL}/checkouts",
+                headers={
+                    "Accept": "application/vnd.api+json",
+                    "Content-Type": "application/vnd.api+json",
+                    "Authorization": f"Bearer {LEMON_API_KEY}"
+                },
+                json=checkout_data,
+                timeout=30.0
             )
             
-    except HTTPException:
-        raise
+            if response.status_code != 201:
+                error_detail = response.json() if response.text else "Unknown error"
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Lemon Squeezy error: {error_detail}"
+                )
+            
+            result = response.json()
+            checkout_url = result["data"]["attributes"]["url"]
+            
+            return CheckoutResponse(
+                success=True,
+                url=checkout_url
+            )
+    
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Network error: {str(e)}"
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error creating checkout: {str(e)}"
+        )
 
 
+# Webhook Handler
 @router.post("/webhook")
-async def lemon_webhook(
+async def webhook_handler(
     request: Request,
     x_signature: Optional[str] = Header(None)
 ):
-    """
-    Handle Lemon Squeezy webhook events
+    """Handle Lemon Squeezy webhooks"""
     
-    Events:
-        - order_created: New Premium subscription
-        - subscription_updated: Subscription changes
-        - subscription_cancelled: Cancel Premium
-    """
+    # Get raw body
+    body = await request.body()
+    
+    # Verify signature if secret is configured
+    if LEMON_WEBHOOK_SECRET and x_signature:
+        expected_signature = hmac.new(
+            LEMON_WEBHOOK_SECRET.encode(),
+            body,
+            hashlib.sha256
+        ).hexdigest()
+        
+        if not hmac.compare_digest(expected_signature, x_signature):
+            raise HTTPException(status_code=401, detail="Invalid signature")
+    
+    # Parse webhook data
     try:
-        # Get raw body
-        body = await request.body()
+        data = json.loads(body)
+        event_name = data.get("meta", {}).get("event_name")
         
-        # Verify webhook signature
-        if LEMON_WEBHOOK_SECRET and x_signature:
-            expected_signature = hmac.new(
-                LEMON_WEBHOOK_SECRET.encode(),
-                body,
-                hashlib.sha256
-            ).hexdigest()
-            
-            if not hmac.compare_digest(x_signature, expected_signature):
-                raise HTTPException(status_code=401, detail="Invalid signature")
+        # Handle different events
+        if event_name == "order_created":
+            await handle_order_created(data)
+        elif event_name == "subscription_created":
+            await handle_subscription_created(data)
+        elif event_name == "subscription_updated":
+            await handle_subscription_updated(data)
+        elif event_name == "subscription_cancelled":
+            await handle_subscription_cancelled(data)
+        elif event_name == "subscription_payment_success":
+            await handle_payment_success(data)
+        elif event_name == "license_key_created":
+            await handle_license_key_created(data)
         
-        # Parse event
-        event = await request.json()
-        event_name = event.get('meta', {}).get('event_name')
-        event_data = event.get('data', {})
-        
-        # Handle events
-        if event_name == 'order_created':
-            # New Premium subscription
-            customer_email = event_data.get('attributes', {}).get('user_email')
-            print(f"✅ Premium subscription created: {customer_email}")
-            # TODO: Upgrade license to Premium in database
-            
-        elif event_name == 'subscription_updated':
-            # Subscription renewed or updated
-            print(f"🔄 Subscription updated")
-            
-        elif event_name == 'subscription_cancelled':
-            # Subscription cancelled
-            print(f"❌ Subscription cancelled")
-            # TODO: Downgrade to Free in database
-        
-        return {"success": True}
-        
-    except HTTPException:
-        raise
+        return {"success": True, "event": event_name}
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/get-price")
-async def get_price():
-    """
-    Get current Premium price
-    
-    Returns:
-        {
-            "success": true,
-            "price": 9.00,
-            "currency": "USD",
-            "interval": "month"
-        }
-    """
-    try:
-        if not LEMON_PRODUCT_ID or not LEMON_API_KEY:
-            # Fallback to hardcoded price
-            return {
-                "success": True,
-                "price": 9.0,
-                "currency": "USD",
-                "interval": "month",
-                "name": "Premium Plan"
-            }
-        
-        # Fetch product from Lemon Squeezy
-        response = requests.get(
-            f"{LEMON_API_BASE}/variants/{LEMON_PRODUCT_ID}",
-            headers=get_headers()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Webhook processing error: {str(e)}"
         )
-        
-        if response.status_code == 200:
-            variant = response.json()['data']
-            price = variant['attributes']['price'] / 100  # Convert cents to dollars
-            
-            return {
-                "success": True,
-                "price": price,
-                "currency": "USD",
-                "interval": "month",
-                "name": "Premium Plan"
-            }
-        else:
-            # Fallback to hardcoded price
-            return {
-                "success": True,
-                "price": 9.0,
-                "currency": "USD",
-                "interval": "month",
-                "name": "Premium Plan"
-            }
-            
-    except Exception:
-        # Fallback to hardcoded price
-        return {
-            "success": True,
-            "price": 9.0,
-            "currency": "USD",
-            "interval": "month",
-            "name": "Premium Plan"
-        }
 
 
-@router.get("/subscriptions/{email}")
-async def get_subscription(email: str):
-    """
-    Get subscription status for a customer
+# Webhook Event Handlers
+async def handle_order_created(data: dict):
+    """Handle order_created event"""
+    print(f"Order created: {data}")
+
+
+async def handle_subscription_created(data: dict):
+    """Handle subscription_created event"""
+    print(f"Subscription created: {data}")
+
+
+async def handle_subscription_updated(data: dict):
+    """Handle subscription_updated event"""
+    print(f"Subscription updated: {data}")
+
+
+async def handle_subscription_cancelled(data: dict):
+    """Handle subscription_cancelled event"""
+    print(f"Subscription cancelled: {data}")
+
+
+async def handle_payment_success(data: dict):
+    """Handle subscription_payment_success event"""
+    print(f"Payment success: {data}")
+
+
+async def handle_license_key_created(data: dict):
+    """Handle license_key_created event"""
+    print(f"License key created: {data}")
+
+
+# Get User Subscriptions
+@router.get("/subscriptions/{email}", response_model=SubscriptionResponse)
+async def get_subscriptions(email: str):
+    """Get user's subscription information"""
     
-    Args:
-        email: Customer email
-        
-    Returns:
-        {
-            "success": true,
-            "subscription": {
-                "status": "active",
-                "plan": "premium",
-                "renews_at": "2025-11-23"
-            }
-        }
-    """
+    if not LEMON_API_KEY:
+        raise HTTPException(status_code=500, detail="Lemon Squeezy not configured")
+    
     try:
-        # TODO: Query Lemon Squeezy API for subscriptions
-        # For now, return mock data
-        
-        return {
-            "success": True,
-            "subscription": {
-                "status": "active",
-                "plan": "premium",
-                "renews_at": "2025-11-23"
-            }
-        }
-        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{LEMON_API_URL}/subscriptions",
+                headers={
+                    "Accept": "application/vnd.api+json",
+                    "Authorization": f"Bearer {LEMON_API_KEY}"
+                },
+                params={"filter[user_email]": email},
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                subscriptions = result.get("data", [])
+                
+                if subscriptions:
+                    return SubscriptionResponse(
+                        success=True,
+                        subscription=subscriptions[0]
+                    )
+                else:
+                    return SubscriptionResponse(
+                        success=True,
+                        subscription=None,
+                        detail="No active subscription found"
+                    )
+            else:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail="Failed to fetch subscriptions"
+                )
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching subscriptions: {str(e)}"
+        )
 
 
+# Cancel Subscription
 @router.post("/cancel-subscription")
-async def cancel_subscription(cancel_req: CancelSubscriptionRequest):
-    """
-    Cancel Premium subscription
+async def cancel_subscription(subscription_id: str):
+    """Cancel a subscription"""
     
-    Request body:
-        {
-            "subscription_id": "12345"
-        }
+    if not LEMON_API_KEY:
+        raise HTTPException(status_code=500, detail="Lemon Squeezy not configured")
     
-    Returns:
-        {
-            "success": true,
-            "message": "Subscription cancelled"
-        }
-    """
     try:
-        if not cancel_req.subscription_id:
-            raise HTTPException(
-                status_code=400,
-                detail="subscription_id required"
-            )
-        
-        # Cancel subscription via API
-        response = requests.delete(
-            f"{LEMON_API_BASE}/subscriptions/{cancel_req.subscription_id}",
-            headers=get_headers()
-        )
-        
-        if response.status_code in [200, 204]:
-            return {
-                "success": True,
-                "message": "Subscription cancelled successfully"
-            }
-        else:
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to cancel subscription"
+        async with httpx.AsyncClient() as client:
+            response = await client.delete(
+                f"{LEMON_API_URL}/subscriptions/{subscription_id}",
+                headers={
+                    "Accept": "application/vnd.api+json",
+                    "Authorization": f"Bearer {LEMON_API_KEY}"
+                },
+                timeout=30.0
             )
             
-    except HTTPException:
-        raise
+            if response.status_code in [200, 204]:
+                return {"success": True, "detail": "Subscription cancelled"}
+            else:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail="Failed to cancel subscription"
+                )
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/health")
-async def health():
-    """Health check endpoint"""
-    return {
-        "success": True,
-        "service": "payment",
-        "provider": "lemon_squeezy",
-        "status": "ok",
-        "api_key_configured": bool(LEMON_API_KEY),
-        "product_id_configured": bool(LEMON_PRODUCT_ID)
-    }
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error cancelling subscription: {str(e)}"
+        )
