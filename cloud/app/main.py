@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db, close_db
 from app.routers import profiles, admin, chat
+from app.routers import payment
 
 app = FastAPI(
     title="WoosAI Cloud API",
@@ -63,3 +64,4 @@ async def health():
 app.include_router(profiles.router)
 app.include_router(admin.router)
 app.include_router(chat.router)
+app.include_router(payment.router)  
