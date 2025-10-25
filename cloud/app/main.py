@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import profiles, admin, chat, payment
+from app.routers import payment  # Only payment router
 
 app = FastAPI(
     title="WoosAI Cloud API",
@@ -41,11 +41,10 @@ async def shutdown():
 async def root():
     """API root - health check"""
     return {
-        "service": "WoosAI Cloud API",
+        "service": "WoosAI Cloud API - Payment System",
         "version": "1.0.0",
         "status": "running",
-        "database": "MongoDB Atlas",
-        "domain": "woos-ai.com",
+        "payment_provider": "Lemon Squeezy",
         "docs": "/docs"
     }
 
@@ -55,12 +54,12 @@ async def health():
     """Health check endpoint"""
     return {
         "status": "healthy",
+        "service": "payment",
         "database": "connected"
     }
 
 
-# Include routers
-app.include_router(profiles.router)
-app.include_router(admin.router)
-app.include_router(chat.router)
+# Include routers - Only payment for now
+# Other routers (profiles, admin, chat) disabled temporarily
+# to avoid auth.py import errors
 app.include_router(payment.router)
