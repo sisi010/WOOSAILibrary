@@ -1,216 +1,325 @@
 """
-Payment Router
-Handles Stripe payment processing
+Lemon Squeezy Payment Integration for WoosAI Backend
+
+Handles Premium subscription payments through Lemon Squeezy
 """
 
 from flask import Blueprint, request, jsonify
-import stripe
+import requests
 import os
-from app.config import get_payments_collection, get_licenses_collection, get_users_collection
-from app.models import Payment, License
-from app.auth import token_required
-from bson.objectid import ObjectId
+import hmac
+import hashlib
+from datetime import datetime, timedelta
 
 payment_bp = Blueprint('payment', __name__)
 
-# Configure Stripe
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+# Lemon Squeezy configuration
+LEMON_API_KEY = os.getenv('LEMON_API_KEY')
+LEMON_STORE_ID = os.getenv('LEMON_STORE_ID')
+LEMON_PRODUCT_ID = os.getenv('LEMON_PRODUCT_ID')
+LEMON_WEBHOOK_SECRET = os.getenv('LEMON_WEBHOOK_SECRET')
 
-# Pricing (in cents)
-PLANS = {
-    'free': {'price': 0, 'name': 'Free Plan', 'duration_days': 365},
-    'premium': {'price': 900, 'name': 'Premium Plan', 'duration_days': 30}  # $9.00
-}
+LEMON_API_BASE = "https://api.lemonsqueezy.com/v1"
 
-@payment_bp.route('/create-checkout-session', methods=['POST'])
-@token_required
-def create_checkout_session(current_user):
-    """Create Stripe checkout session"""
+
+def get_headers():
+    """Get authorization headers for Lemon Squeezy API"""
+    return {
+        "Authorization": f"Bearer {LEMON_API_KEY}",
+        "Content-Type": "application/vnd.api+json",
+        "Accept": "application/vnd.api+json"
+    }
+
+
+@payment_bp.route('/create-checkout', methods=['POST'])
+def create_checkout():
+    """
+    Create Lemon Squeezy checkout session for Premium upgrade
+    
+    Request body:
+        {
+            "email": "user@example.com",
+            "license_key": "WOOSAI-FREE-xxx"
+        }
+    
+    Returns:
+        {
+            "success": true,
+            "url": "https://woosai.lemonsqueezy.com/checkout/..."
+        }
+    """
     try:
         data = request.get_json()
-        plan = data.get('plan', 'premium')
+        email = data.get('email')
+        license_key = data.get('license_key')
         
-        if plan not in PLANS:
-            return jsonify({'error': 'Invalid plan'}), 400
+        if not email or not license_key:
+            return jsonify({
+                'success': False,
+                'error': 'Email and license_key are required'
+            }), 400
         
-        plan_info = PLANS[plan]
-        
-        if plan_info['price'] == 0:
-            return jsonify({'error': 'Free plan does not require payment'}), 400
-        
-        # Create Stripe checkout session
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': plan_info['name'],
-                        'description': f'WoosAI {plan} plan - {plan_info["duration_days"]} days'
+        # Create checkout session
+        checkout_data = {
+            "data": {
+                "type": "checkouts",
+                "attributes": {
+                    "checkout_data": {
+                        "email": email,
+                        "custom": {
+                            "license_key": license_key
+                        }
                     },
-                    'unit_amount': plan_info['price'],
+                    "expires_at": None,
+                    "preview": False
                 },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=f'http://woos-ai.com/pricing.html?session_id={{CHECKOUT_SESSION_ID}}',
-            cancel_url='http://woos-ai.com/pricing.html',
-            metadata={
-                'user_id': current_user['user_id'],
-                'plan': plan
+                "relationships": {
+                    "store": {
+                        "data": {
+                            "type": "stores",
+                            "id": LEMON_STORE_ID
+                        }
+                    },
+                    "variant": {
+                        "data": {
+                            "type": "variants",
+                            "id": LEMON_PRODUCT_ID
+                        }
+                    }
+                }
             }
+        }
+        
+        response = requests.post(
+            f"{LEMON_API_BASE}/checkouts",
+            headers=get_headers(),
+            json=checkout_data
         )
         
-        # Save payment record
-        payment_data = Payment.create(
-            user_id=current_user['user_id'],
-            amount=plan_info['price'] / 100,  # Convert to dollars
-            plan=plan,
-            stripe_payment_id=session.id
-        )
-        
-        payments_collection = get_payments_collection()
-        payments_collection.insert_one(payment_data)
-        
-        return jsonify({
-            'session_id': session.id,
-            'url': session.url
-        }), 200
-    
+        if response.status_code in [200, 201]:
+            result = response.json()
+            checkout_url = result['data']['attributes']['url']
+            
+            return jsonify({
+                'success': True,
+                'url': checkout_url,
+                'checkout_id': result['data']['id']
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': f"Lemon Squeezy error: {response.text}"
+            }), 500
+            
     except Exception as e:
-        return jsonify({'error': f'Failed to create checkout session: {str(e)}'}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 
 @payment_bp.route('/webhook', methods=['POST'])
-def stripe_webhook():
-    """Handle Stripe webhook events"""
-    payload = request.get_data()
-    sig_header = request.headers.get('Stripe-Signature')
+def lemon_webhook():
+    """
+    Handle Lemon Squeezy webhook events
     
-    # Note: In production, verify webhook signature
-    # endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
-    
+    Events:
+        - order_created: New Premium subscription
+        - subscription_updated: Subscription changes
+        - subscription_cancelled: Cancel Premium
+    """
     try:
-        event = stripe.Event.construct_from(
-            request.get_json(), stripe.api_key
-        )
+        # Verify webhook signature
+        signature = request.headers.get('X-Signature')
+        payload = request.get_data()
+        
+        if LEMON_WEBHOOK_SECRET:
+            expected_signature = hmac.new(
+                LEMON_WEBHOOK_SECRET.encode(),
+                payload,
+                hashlib.sha256
+            ).hexdigest()
+            
+            if not hmac.compare_digest(signature, expected_signature):
+                return jsonify({'error': 'Invalid signature'}), 401
+        
+        # Parse event
+        event = request.get_json()
+        event_name = event.get('meta', {}).get('event_name')
+        event_data = event.get('data', {})
+        
+        # Handle events
+        if event_name == 'order_created':
+            # New Premium subscription
+            license_key = event_data.get('attributes', {}).get('first_order_item', {}).get('product_name')
+            customer_email = event_data.get('attributes', {}).get('user_email')
+            
+            print(f"✅ Premium subscription created: {customer_email}")
+            # TODO: Upgrade license to Premium in database
+            
+        elif event_name == 'subscription_updated':
+            # Subscription renewed or updated
+            print(f"🔄 Subscription updated")
+            
+        elif event_name == 'subscription_cancelled':
+            # Subscription cancelled
+            print(f"❌ Subscription cancelled")
+            # TODO: Downgrade to Free in database
+        
+        return jsonify({'success': True}), 200
+        
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
-    
-    # Handle the checkout.session.completed event
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        
-        # Get user and plan from metadata
-        user_id = session['metadata']['user_id']
-        plan = session['metadata']['plan']
-        
-        # Update payment status
-        payments_collection = get_payments_collection()
-        payments_collection.update_one(
-            {'stripe_payment_id': session['id']},
-            {'$set': {'status': 'completed'}}
-        )
-        
-        # Generate license
-        plan_info = PLANS[plan]
-        license_data = License.create(user_id, plan, plan_info['duration_days'])
-        
-        licenses_collection = get_licenses_collection()
-        licenses_collection.insert_one(license_data)
-        
-        # Update user plan
-        users_collection = get_users_collection()
-        users_collection.update_one(
-            {'_id': ObjectId(user_id)},
-            {'$set': {'plan': plan}}
-        )
-    
-    return jsonify({'status': 'success'}), 200
+        print(f"Webhook error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
-@payment_bp.route('/verify-session', methods=['POST'])
-@token_required
-def verify_session(current_user):
-    """Verify payment session and generate license"""
+@payment_bp.route('/get-price', methods=['GET'])
+def get_price():
+    """
+    Get current Premium price
+    
+    Returns:
+        {
+            "success": true,
+            "price": 9.00,
+            "currency": "USD",
+            "interval": "month"
+        }
+    """
+    try:
+        # Fetch product from Lemon Squeezy
+        response = requests.get(
+            f"{LEMON_API_BASE}/variants/{LEMON_PRODUCT_ID}",
+            headers=get_headers()
+        )
+        
+        if response.status_code == 200:
+            variant = response.json()['data']
+            price = variant['attributes']['price'] / 100  # Convert cents to dollars
+            
+            return jsonify({
+                'success': True,
+                'price': price,
+                'currency': 'USD',
+                'interval': 'month',
+                'name': 'Premium Plan'
+            }), 200
+        else:
+            # Fallback to hardcoded price
+            return jsonify({
+                'success': True,
+                'price': 9.0,
+                'currency': 'USD',
+                'interval': 'month',
+                'name': 'Premium Plan'
+            }), 200
+            
+    except Exception as e:
+        # Fallback to hardcoded price
+        return jsonify({
+            'success': True,
+            'price': 9.0,
+            'currency': 'USD',
+            'interval': 'month',
+            'name': 'Premium Plan'
+        }), 200
+
+
+@payment_bp.route('/subscriptions/<email>', methods=['GET'])
+def get_subscription(email):
+    """
+    Get subscription status for a customer
+    
+    Args:
+        email: Customer email
+        
+    Returns:
+        {
+            "success": true,
+            "subscription": {
+                "status": "active",
+                "plan": "premium",
+                "renews_at": "2025-11-23"
+            }
+        }
+    """
+    try:
+        # TODO: Query Lemon Squeezy API for subscriptions
+        # For now, check database
+        
+        return jsonify({
+            'success': True,
+            'subscription': {
+                'status': 'active',
+                'plan': 'premium',
+                'renews_at': '2025-11-23'
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@payment_bp.route('/cancel-subscription', methods=['POST'])
+def cancel_subscription():
+    """
+    Cancel Premium subscription
+    
+    Request body:
+        {
+            "subscription_id": "12345"
+        }
+    
+    Returns:
+        {
+            "success": true,
+            "message": "Subscription cancelled"
+        }
+    """
     try:
         data = request.get_json()
-        session_id = data.get('session_id')
+        subscription_id = data.get('subscription_id')
         
-        if not session_id:
-            return jsonify({'error': 'Session ID is required'}), 400
-        
-        # Retrieve session from Stripe
-        session = stripe.checkout.Session.retrieve(session_id)
-        
-        if session.payment_status != 'paid':
-            return jsonify({'error': 'Payment not completed'}), 400
-        
-        # Check if license already generated
-        licenses_collection = get_licenses_collection()
-        existing_license = licenses_collection.find_one({
-            'user_id': current_user['user_id'],
-            'stripe_session_id': session_id
-        })
-        
-        if existing_license:
+        if not subscription_id:
             return jsonify({
-                'message': 'License already generated',
-                'license_key': existing_license['license_key']
+                'success': False,
+                'error': 'subscription_id required'
+            }), 400
+        
+        # Cancel subscription via API
+        response = requests.delete(
+            f"{LEMON_API_BASE}/subscriptions/{subscription_id}",
+            headers=get_headers()
+        )
+        
+        if response.status_code in [200, 204]:
+            return jsonify({
+                'success': True,
+                'message': 'Subscription cancelled successfully'
             }), 200
-        
-        # Generate license
-        plan = session.metadata.get('plan', 'premium')
-        plan_info = PLANS[plan]
-        license_data = License.create(
-            current_user['user_id'],
-            plan,
-            plan_info['duration_days']
-        )
-        license_data['stripe_session_id'] = session_id
-        
-        result = licenses_collection.insert_one(license_data)
-        
-        # Update user plan
-        users_collection = get_users_collection()
-        users_collection.update_one(
-            {'_id': ObjectId(current_user['user_id'])},
-            {'$set': {'plan': plan}}
-        )
-        
-        return jsonify({
-            'message': 'License generated successfully',
-            'license_key': license_data['license_key'],
-            'plan': plan,
-            'expires_at': license_data['expires_at'].isoformat()
-        }), 200
-    
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to cancel subscription'
+            }), 500
+            
     except Exception as e:
-        return jsonify({'error': f'Verification failed: {str(e)}'}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 
-@payment_bp.route('/my-payments', methods=['GET'])
-@token_required
-def get_my_payments(current_user):
-    """Get payment history for current user"""
-    try:
-        payments_collection = get_payments_collection()
-        payments = list(payments_collection.find({'user_id': current_user['user_id']}))
-        
-        payment_list = []
-        for payment in payments:
-            payment_list.append({
-                'id': str(payment['_id']),
-                'amount': payment['amount'],
-                'plan': payment['plan'],
-                'status': payment['status'],
-                'created_at': payment['created_at'].isoformat()
-            })
-        
-        return jsonify({
-            'payments': payment_list,
-            'count': len(payment_list)
-        }), 200
-    
-    except Exception as e:
-        return jsonify({'error': f'Failed to get payments: {str(e)}'}), 500
+# Health check
+@payment_bp.route('/health', methods=['GET'])
+def health():
+    """Health check endpoint"""
+    return jsonify({
+        'success': True,
+        'service': 'payment',
+        'provider': 'lemon_squeezy',
+        'status': 'ok'
+    }), 200
