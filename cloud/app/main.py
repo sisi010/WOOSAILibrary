@@ -2,9 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import init_db, close_db
-from app.routers import profiles, admin, chat
-from app.routers import payment
+from app.routers import profiles, admin, chat, payment
 
 app = FastAPI(
     title="WoosAI Cloud API",
@@ -27,14 +25,15 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     """Initialize database on startup"""
-    await init_db()
+    # Database connection is established lazily on first use via get_db()
     print("🚀 WoosAI Cloud API started!")
 
 
 @app.on_event("shutdown")
 async def shutdown():
     """Close database on shutdown"""
-    await close_db()
+    from app.database import close_db
+    close_db()
     print("👋 WoosAI Cloud API stopped")
 
 
@@ -46,7 +45,7 @@ async def root():
         "version": "1.0.0",
         "status": "running",
         "database": "MongoDB Atlas",
-        "domain": "woos-ai.com (준비 중)",
+        "domain": "woos-ai.com",
         "docs": "/docs"
     }
 
@@ -64,4 +63,4 @@ async def health():
 app.include_router(profiles.router)
 app.include_router(admin.router)
 app.include_router(chat.router)
-app.include_router(payment.router)  
+app.include_router(payment.router)
