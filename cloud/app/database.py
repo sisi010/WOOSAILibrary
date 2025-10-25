@@ -55,7 +55,7 @@ def get_db():
             raise ValueError("MONGODB_URL is not configured in environment variables")
         
         # Create client and get database
-        print(f"\n🔌 Attempting to connect to MongoDB...")
+        print(f"\n📌 Attempting to connect to MongoDB...")
         try:
             # Parse connection string to remove SSL parameters
             import urllib.parse
@@ -108,3 +108,24 @@ def close_db():
         _client = None
         _db = None
         print("👋 MongoDB disconnected")
+
+
+# Dynamic collection access for backward compatibility
+def __getattr__(name):
+    """
+    Dynamic attribute access for collections
+    Allows: from app.database import profiles_collection
+    """
+    collection_map = {
+        'profiles_collection': 'profiles',
+        'usage_collection': 'usage',
+        'licenses_collection': 'licenses',
+        'payments_collection': 'payments',
+        'chat_collection': 'chats',
+        'admin_collection': 'admin'
+    }
+    
+    if name in collection_map:
+        return get_collection(collection_map[name])
+    
+    raise AttributeError(f"module 'app.database' has no attribute '{name}'")
