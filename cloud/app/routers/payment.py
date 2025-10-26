@@ -303,12 +303,10 @@ async def handle_subscription_created(data: dict):
     try:
         print(f"🔍 SUBSCRIPTION DATA: {json.dumps(data, indent=2)}")
         
-        attributes = data.get("data", {}).get("attributes", {})
+        # Extract from correct location
+        subscription_id = data.get("data", {}).get("id")  # ID is here!
         
-        # Try multiple possible field names
-        subscription_id = (attributes.get("subscription_id") or 
-                          attributes.get("id") or
-                          data.get("data", {}).get("id"))
+        attributes = data.get("data", {}).get("attributes", {})
         
         email = (attributes.get("user_email") or 
                 attributes.get("customer_email") or
@@ -316,8 +314,10 @@ async def handle_subscription_created(data: dict):
         
         status = attributes.get("status")
         variant_name = attributes.get("variant_name")
+        order_id = attributes.get("order_id")
         
         print(f"✅ Subscription created: {subscription_id} for {email}")
+        print(f"   Status: {status}, Variant: {variant_name}, Order: {order_id}")
         
         # Get MongoDB
         database = await get_database()
