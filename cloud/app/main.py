@@ -67,4 +67,4 @@ async def health():
 # Include routers
 app.include_router(auth_router.router, prefix="/api/auth", tags=["auth"])
 app.include_router(license_router.router, prefix="/api/license", tags=["license"])
-app.include_router(payment.router, prefix="/api/payment", tags=["payment"])
+app.include_router(payment.router)

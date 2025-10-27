@@ -14,8 +14,7 @@ import json
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 
-router = APIRouter(prefix="/api/payment", tags=["payment"])
-
+router = APIRouter(tags=["payment"])
 # Lemon Squeezy Configuration
 LEMON_API_KEY = os.getenv("LEMON_API_KEY")
 LEMON_STORE_ID = os.getenv("LEMON_STORE_ID")
