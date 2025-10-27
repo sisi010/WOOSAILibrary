@@ -226,8 +226,8 @@ async def webhook_handler(
         data = json.loads(body)
         event_name = data.get("meta", {}).get("event_name")
         
-        print(f"📥 Webhook received: {event_name}")
-        print(f"🔍 Full webhook data: {json.dumps(data, indent=2)}")
+        # FIXED: Only log event name, not full data
+        print(f"✅ Webhook: {event_name}")
         
         # Handle different events
         if event_name == "order_created":
@@ -245,54 +245,49 @@ async def webhook_handler(
         else:
             print(f"⚠️ Unhandled event: {event_name}")
         
-        return {"success": True, "event": event_name}
+        return {"success": True}
     
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
     except Exception as e:
         print(f"❌ Webhook error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Webhook processing error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-# Webhook Event Handlers with MongoDB Integration
 
 async def handle_order_created(data: dict):
     """Handle order_created event"""
     try:
-        print(f"🔍 ORDER DATA: {json.dumps(data, indent=2)}")
-        
         attributes = data.get("data", {}).get("attributes", {})
         
-        # Try multiple possible field names
+        # Try multiple possible field names for order_id
         order_id = (attributes.get("order_id") or 
-                   attributes.get("id") or 
+                   attributes.get("id") or
                    data.get("data", {}).get("id"))
         
         email = (attributes.get("user_email") or 
                 attributes.get("customer_email") or
                 attributes.get("email"))
         
-        total = attributes.get("total")
-        
-        print(f"✅ Order created: {order_id} for {email} - ${total}")
+        # FIXED: Only log essential info
+        print(f"✅ Order created: {order_id} - {email}")
         
         # Get MongoDB
         database = await get_database()
         orders_collection = database["orders"]
         
-        # Save order to MongoDB
+        # Save order
         order_doc = {
-            "order_id": order_id,
+            "order_id": str(order_id),
             "email": email,
-            "total": total,
-            "status": "paid",
+            "status": attributes.get("status", "pending"),
+            "total": attributes.get("total", 0),
+            "currency": attributes.get("currency", "USD"),
             "created_at": datetime.utcnow(),
             "lemon_data": attributes
         }
         
         await orders_collection.insert_one(order_doc)
-        print(f"💾 Order saved to MongoDB: {order_id}")
+        print(f"💾 Order saved: {order_id}")
         
     except Exception as e:
         print(f"❌ Error handling order_created: {str(e)}")
@@ -301,56 +296,56 @@ async def handle_order_created(data: dict):
 async def handle_subscription_created(data: dict):
     """Handle subscription_created event"""
     try:
-        print(f"🔍 SUBSCRIPTION DATA: {json.dumps(data, indent=2)}")
-        
-        # Extract from correct location
-        subscription_id = data.get("data", {}).get("id")  # ID is here!
-        
         attributes = data.get("data", {}).get("attributes", {})
+        
+        # Try multiple possible field names
+        subscription_id = (attributes.get("subscription_id") or 
+                          attributes.get("id") or
+                          data.get("data", {}).get("id"))
         
         email = (attributes.get("user_email") or 
                 attributes.get("customer_email") or
                 attributes.get("email"))
         
-        status = attributes.get("status")
-        variant_name = attributes.get("variant_name")
-        order_id = attributes.get("order_id")
-        
-        print(f"✅ Subscription created: {subscription_id} for {email}")
-        print(f"   Status: {status}, Variant: {variant_name}, Order: {order_id}")
+        # FIXED: Only log essential info
+        print(f"✅ Subscription created: {subscription_id} - {email}")
         
         # Get MongoDB
         database = await get_database()
-        users_collection = database["users"]
         subscriptions_collection = database["subscriptions"]
+        users_collection = database["users"]
         
-        # Save subscription to MongoDB
+        # Save subscription
         subscription_doc = {
-            "subscription_id": subscription_id,
+            "subscription_id": str(subscription_id),
             "email": email,
-            "status": status,
-            "variant_name": variant_name,
+            "status": attributes.get("status", "active"),
+            "product_id": attributes.get("product_id"),
+            "variant_id": attributes.get("variant_id"),
             "created_at": datetime.utcnow(),
+            "renews_at": attributes.get("renews_at"),
+            "ends_at": attributes.get("ends_at"),
+            "trial_ends_at": attributes.get("trial_ends_at"),
             "lemon_data": attributes
         }
         
         await subscriptions_collection.insert_one(subscription_doc)
         
-        # Update user to Premium
+        # Update user
         await users_collection.update_one(
             {"email": email},
             {
                 "$set": {
                     "plan": "premium",
-                    "subscription_id": subscription_id,
-                    "subscription_status": status,
+                    "subscription_id": str(subscription_id),
+                    "subscription_status": "active",
                     "upgraded_at": datetime.utcnow()
                 }
             },
             upsert=True
         )
         
-        print(f"💾 Subscription saved and user upgraded to Premium: {email}")
+        print(f"💾 Subscription saved: {subscription_id}")
         
     except Exception as e:
         print(f"❌ Error handling subscription_created: {str(e)}")
@@ -361,22 +356,28 @@ async def handle_subscription_updated(data: dict):
     try:
         attributes = data.get("data", {}).get("attributes", {})
         
-        subscription_id = attributes.get("subscription_id")
-        status = attributes.get("status")
+        # Try multiple possible field names
+        subscription_id = (attributes.get("subscription_id") or 
+                          attributes.get("id") or
+                          data.get("data", {}).get("id"))
         
-        print(f"✅ Subscription updated: {subscription_id} - Status: {status}")
+        status = attributes.get("status", "unknown")
+        
+        print(f"✅ Subscription updated: {subscription_id} - {status}")
         
         # Get MongoDB
         database = await get_database()
         subscriptions_collection = database["subscriptions"]
         users_collection = database["users"]
         
-        # Update subscription status
+        # Update subscription
         await subscriptions_collection.update_one(
-            {"subscription_id": subscription_id},
+            {"subscription_id": str(subscription_id)},
             {
                 "$set": {
                     "status": status,
+                    "renews_at": attributes.get("renews_at"),
+                    "ends_at": attributes.get("ends_at"),
                     "updated_at": datetime.utcnow(),
                     "lemon_data": attributes
                 }
@@ -385,22 +386,17 @@ async def handle_subscription_updated(data: dict):
         
         # Update user status
         subscription = await subscriptions_collection.find_one(
-            {"subscription_id": subscription_id}
+            {"subscription_id": str(subscription_id)}
         )
         
         if subscription:
             email = subscription.get("email")
             await users_collection.update_one(
                 {"email": email},
-                {
-                    "$set": {
-                        "subscription_status": status,
-                        "updated_at": datetime.utcnow()
-                    }
-                }
+                {"$set": {"subscription_status": status}}
             )
         
-        print(f"💾 Subscription status updated: {subscription_id}")
+        print(f"💾 Subscription updated: {subscription_id}")
         
     except Exception as e:
         print(f"❌ Error handling subscription_updated: {str(e)}")
@@ -411,7 +407,10 @@ async def handle_subscription_cancelled(data: dict):
     try:
         attributes = data.get("data", {}).get("attributes", {})
         
-        subscription_id = attributes.get("subscription_id")
+        # Try multiple possible field names
+        subscription_id = (attributes.get("subscription_id") or 
+                          attributes.get("id") or
+                          data.get("data", {}).get("id"))
         
         print(f"✅ Subscription cancelled: {subscription_id}")
         
@@ -422,12 +421,11 @@ async def handle_subscription_cancelled(data: dict):
         
         # Update subscription status
         await subscriptions_collection.update_one(
-            {"subscription_id": subscription_id},
+            {"subscription_id": str(subscription_id)},
             {
                 "$set": {
                     "status": "cancelled",
-                    "cancelled_at": datetime.utcnow(),
-                    "lemon_data": attributes
+                    "cancelled_at": datetime.utcnow()
                 }
             }
         )
@@ -459,8 +457,7 @@ async def handle_subscription_cancelled(data: dict):
 async def handle_payment_success(data: dict):
     """Handle subscription_payment_success event"""
     try:
-        print(f"🔍 PAYMENT SUCCESS DATA: {json.dumps(data, indent=2)}")
-        
+        # FIXED: Removed full data logging
         attributes = data.get("data", {}).get("attributes", {})
         
         # Try multiple possible field names
@@ -468,7 +465,7 @@ async def handle_payment_success(data: dict):
                           attributes.get("id") or
                           data.get("data", {}).get("id"))
         
-        print(f"✅ Payment success for subscription: {subscription_id}")
+        print(f"✅ Payment success: {subscription_id}")
         
         # Get MongoDB
         database = await get_database()
@@ -516,8 +513,7 @@ async def handle_payment_success(data: dict):
 async def handle_license_key_created(data: dict):
     """Handle license_key_created event"""
     try:
-        print(f"🔍 LICENSE DATA: {json.dumps(data, indent=2)}")
-        
+        # FIXED: Removed full data logging
         attributes = data.get("data", {}).get("attributes", {})
         
         # Try multiple possible field names
@@ -531,7 +527,7 @@ async def handle_license_key_created(data: dict):
         # Get order_id to find email if not in license data
         order_id = attributes.get("order_id")
         
-        print(f"✅ License key created: {license_key} for {email}")
+        print(f"✅ License created: {license_key[:8]}... - {email}")
         
         # Get MongoDB
         database = await get_database()
@@ -571,7 +567,7 @@ async def handle_license_key_created(data: dict):
             upsert=True
         )
         
-        print(f"💾 License key saved: {license_key}")
+        print(f"💾 License saved: {license_key[:8]}...")
         
     except Exception as e:
         print(f"❌ Error handling license_key_created: {str(e)}")

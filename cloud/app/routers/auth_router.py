@@ -1,87 +1,119 @@
 """
-Authentication Router
+Authentication Router - FastAPI Version
 Handles user registration and login
 """
 
-from flask import Blueprint, request, jsonify
-from app.config import get_users_collection
-from app.models import User, APIKey
-from app.auth import generate_token, token_required
+from fastapi import APIRouter, HTTPException, status, Depends
+from pydantic import BaseModel, EmailStr
+from typing import Optional
+from datetime import datetime
 from bson.objectid import ObjectId
 
-auth_bp = Blueprint('auth', __name__)
+from app.database import get_db
+from app.models import User
 
-@auth_bp.route('/register', methods=['POST'])
-def register():
+# Create router
+router = APIRouter()
+
+
+# Request Models
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    name: Optional[str] = ""
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+# Response Models
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    name: str
+    plan: str
+
+
+class AuthResponse(BaseModel):
+    message: str
+    token: str
+    user: UserResponse
+
+
+@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+async def register(data: RegisterRequest):
     """User registration endpoint"""
     try:
-        data = request.get_json()
-        
-        # Validate input
-        if not data or not data.get('email') or not data.get('password'):
-            return jsonify({'error': 'Email and password are required'}), 400
-        
-        email = data.get('email')
-        password = data.get('password')
-        name = data.get('name', '')
+        db = get_db()
+        users_collection = db.users
         
         # Check if user already exists
-        users_collection = get_users_collection()
-        existing_user = users_collection.find_one({'email': email})
+        existing_user = users_collection.find_one({'email': data.email})
         
         if existing_user:
-            return jsonify({'error': 'Email already registered'}), 400
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Email already registered'
+            )
         
         # Create new user
-        user_data = User.create(email, password, name)
+        user_data = User.create(data.email, data.password, data.name)
         result = users_collection.insert_one(user_data)
         
-        # Generate token
-        token = generate_token(result.inserted_id, email)
+        # Generate token (simple version - you can enhance this)
+        from app.auth import generate_token
+        token = generate_token(result.inserted_id, data.email)
         
-        return jsonify({
+        return {
             'message': 'User registered successfully',
             'token': token,
             'user': {
                 'id': str(result.inserted_id),
-                'email': email,
-                'name': name,
+                'email': data.email,
+                'name': data.name,
                 'plan': 'free'
             }
-        }), 201
+        }
     
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({'error': f'Registration failed: {str(e)}'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'Registration failed: {str(e)}'
+        )
 
 
-@auth_bp.route('/login', methods=['POST'])
-def login():
+@router.post("/login", response_model=AuthResponse)
+async def login(data: LoginRequest):
     """User login endpoint"""
     try:
-        data = request.get_json()
-        
-        # Validate input
-        if not data or not data.get('email') or not data.get('password'):
-            return jsonify({'error': 'Email and password are required'}), 400
-        
-        email = data.get('email')
-        password = data.get('password')
+        db = get_db()
+        users_collection = db.users
         
         # Find user
-        users_collection = get_users_collection()
-        user = users_collection.find_one({'email': email})
+        user = users_collection.find_one({'email': data.email})
         
         if not user:
-            return jsonify({'error': 'Invalid email or password'}), 401
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Invalid email or password'
+            )
         
         # Verify password
-        if not User.verify_password(user['password'], password):
-            return jsonify({'error': 'Invalid email or password'}), 401
+        if not User.verify_password(user['password'], data.password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Invalid email or password'
+            )
         
         # Generate token
-        token = generate_token(user['_id'], email)
+        from app.auth import generate_token
+        token = generate_token(user['_id'], data.email)
         
-        return jsonify({
+        return {
             'message': 'Login successful',
             'token': token,
             'user': {
@@ -90,41 +122,29 @@ def login():
                 'name': user.get('name', ''),
                 'plan': user.get('plan', 'free')
             }
-        }), 200
+        }
     
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({'error': f'Login failed: {str(e)}'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'Login failed: {str(e)}'
+        )
 
 
-@auth_bp.route('/me', methods=['GET'])
-@token_required
-def get_current_user(current_user):
-    """Get current user info"""
-    try:
-        users_collection = get_users_collection()
-        user = users_collection.find_one({'_id': ObjectId(current_user['user_id'])})
-        
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-        
-        return jsonify({
-            'user': {
-                'id': str(user['_id']),
-                'email': user['email'],
-                'name': user.get('name', ''),
-                'plan': user.get('plan', 'free'),
-                'created_at': user.get('created_at').isoformat() if user.get('created_at') else None
-            }
-        }), 200
-    
-    except Exception as e:
-        return jsonify({'error': f'Failed to get user info: {str(e)}'}), 500
+@router.get("/me", response_model=UserResponse)
+async def get_current_user():
+    """Get current user info - placeholder for token authentication"""
+    # TODO: Implement proper token authentication with Depends
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail='Token authentication not yet implemented'
+    )
 
 
-@auth_bp.route('/logout', methods=['POST'])
-@token_required
-def logout(current_user):
+@router.post("/logout")
+async def logout():
     """User logout endpoint"""
     # In JWT, logout is handled on client side by deleting the token
-    # This endpoint is for future enhancements (e.g., token blacklist)
-    return jsonify({'message': 'Logged out successfully'}), 200
+    return {'message': 'Logged out successfully'}

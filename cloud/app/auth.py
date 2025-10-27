@@ -1,15 +1,16 @@
 """
-Authentication Helper Functions
+Authentication Helper Functions - FastAPI Version
 JWT token generation and verification
 """
 
 import jwt
 from datetime import datetime, timedelta
-from flask import request, jsonify
-from functools import wraps
+from fastapi import HTTPException, status, Header
+from typing import Optional
 import os
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'woosai-secret-key-2025')
+
 
 def generate_token(user_id, email):
     """Generate JWT token"""
@@ -22,7 +23,8 @@ def generate_token(user_id, email):
     token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
     return token
 
-def verify_token(token):
+
+def verify_token(token: str):
     """Verify JWT token"""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
@@ -32,30 +34,44 @@ def verify_token(token):
     except jwt.InvalidTokenError:
         return False, {'error': 'Invalid token'}
 
-def token_required(f):
-    """Decorator to require valid token"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        
-        # Get token from Authorization header
-        if 'Authorization' in request.headers:
-            auth_header = request.headers['Authorization']
-            try:
-                token = auth_header.split(' ')[1]  # "Bearer TOKEN"
-            except IndexError:
-                return jsonify({'error': 'Invalid token format'}), 401
-        
-        if not token:
-            return jsonify({'error': 'Token is missing'}), 401
-        
-        # Verify token
-        is_valid, payload = verify_token(token)
-        
-        if not is_valid:
-            return jsonify(payload), 401
-        
-        # Pass user info to the route
-        return f(payload, *args, **kwargs)
+
+async def get_current_user(authorization: Optional[str] = Header(None)):
+    """
+    FastAPI dependency for token authentication
+    Usage: current_user = Depends(get_current_user)
+    """
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Authorization header is missing',
+            headers={'WWW-Authenticate': 'Bearer'}
+        )
     
-    return decorated
+    try:
+        # Extract token from "Bearer TOKEN"
+        scheme, token = authorization.split()
+        
+        if scheme.lower() != 'bearer':
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Invalid authentication scheme',
+                headers={'WWW-Authenticate': 'Bearer'}
+            )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Invalid authorization header format',
+            headers={'WWW-Authenticate': 'Bearer'}
+        )
+    
+    # Verify token
+    is_valid, payload = verify_token(token)
+    
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=payload.get('error', 'Invalid token'),
+            headers={'WWW-Authenticate': 'Bearer'}
+        )
+    
+    return payload

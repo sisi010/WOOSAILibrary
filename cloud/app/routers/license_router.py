@@ -1,49 +1,103 @@
 """
-License Router
+License Router - FastAPI Version
 Handles license creation and verification
 """
 
-from flask import Blueprint, request, jsonify
-from app.config import get_licenses_collection, get_users_collection
-from app.models import License, User
-from app.auth import token_required
-from bson.objectid import ObjectId
+from fastapi import APIRouter, HTTPException, status, Depends
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
 from datetime import datetime
+from bson.objectid import ObjectId
 
-license_bp = Blueprint('license', __name__)
+from app.database import get_db
+from app.models import License
+from app.auth import get_current_user
+
+# Create router
+router = APIRouter()
 
 
-@license_bp.route('/generate', methods=['POST'])
-@token_required
-def generate_license(current_user):
-    """Generate new license for user"""
+# Request Models
+class GenerateLicenseRequest(BaseModel):
+    plan: str = "free"
+    duration_days: int = 30
+
+
+class FreeLicenseRequest(BaseModel):
+    email: EmailStr
+
+
+class VerifyLicenseRequest(BaseModel):
+    license_key: str
+
+
+# Response Models
+class LicenseInfo(BaseModel):
+    id: Optional[str] = None
+    license_key: str
+    plan: str
+    expires_at: str
+    status: str
+    created_at: Optional[str] = None
+
+
+class LicenseResponse(BaseModel):
+    message: str
+    license: LicenseInfo
+
+
+class FreeLicenseResponse(BaseModel):
+    success: bool
+    license_key: str
+    plan: str
+    expires_at: str
+    message: str
+
+
+class VerifyResponse(BaseModel):
+    valid: bool
+    message: str
+    license: Optional[dict] = None
+
+
+class MyLicensesResponse(BaseModel):
+    licenses: List[LicenseInfo]
+    count: int
+
+
+@router.post("/generate", response_model=LicenseResponse, status_code=status.HTTP_201_CREATED)
+async def generate_license(
+    data: GenerateLicenseRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate new license for authenticated user"""
     try:
-        data = request.get_json()
-        
-        # Get plan from request or user's current plan
-        plan = data.get('plan', 'free')
-        duration_days = data.get('duration_days', 30)
-        
         # Validate plan
-        if plan not in ['free', 'premium']:
-            return jsonify({'error': 'Invalid plan'}), 400
+        if data.plan not in ['free', 'premium']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Invalid plan'
+            )
+        
+        # Get database
+        db = get_db()
+        licenses_collection = db.licenses
+        users_collection = db.users
         
         # Create license
         user_id = current_user['user_id']
-        license_data = License.create(user_id, plan, duration_days)
+        license_data = License.create(user_id, data.plan, data.duration_days)
         
         # Save to database
-        licenses_collection = get_licenses_collection()
         result = licenses_collection.insert_one(license_data)
         
         # Update user plan
-        users_collection = get_users_collection()
         users_collection.update_one(
             {'_id': ObjectId(user_id)},
-            {'$set': {'plan': plan}}
+            {'$set': {'plan': data.plan}}
         )
         
-        return jsonify({
+        return {
             'message': 'License generated successfully',
             'license': {
                 'id': str(result.inserted_id),
@@ -52,14 +106,19 @@ def generate_license(current_user):
                 'expires_at': license_data['expires_at'].isoformat(),
                 'status': license_data['status']
             }
-        }), 201
+        }
     
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({'error': f'Failed to generate license: {str(e)}'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'Failed to generate license: {str(e)}'
+        )
 
 
-@license_bp.route('/request-free', methods=['POST'])
-def request_free_license():
+@router.post("/request-free", response_model=FreeLicenseResponse, status_code=status.HTTP_201_CREATED)
+async def request_free_license(data: FreeLicenseRequest):
     """
     Request free license with email only (no login required)
     
@@ -81,20 +140,12 @@ def request_free_license():
         }
     """
     try:
-        data = request.get_json()
+        email = data.email.lower().strip()
         
-        # Validate email
-        if not data or not data.get('email'):
-            return jsonify({'error': 'Email is required'}), 400
-        
-        email = data.get('email').strip().lower()
-        
-        # Basic email validation
-        if '@' not in email or '.' not in email:
-            return jsonify({'error': 'Invalid email format'}), 400
-        
-        users_collection = get_users_collection()
-        licenses_collection = get_licenses_collection()
+        # Get database
+        db = get_db()
+        users_collection = db.users
+        licenses_collection = db.licenses
         
         # Check if user exists
         user = users_collection.find_one({'email': email})
@@ -110,13 +161,13 @@ def request_free_license():
             
             if existing_license:
                 # Return existing active license
-                return jsonify({
+                return {
                     'success': True,
                     'license_key': existing_license['license_key'],
                     'plan': existing_license['plan'],
                     'expires_at': existing_license['expires_at'].isoformat(),
                     'message': 'Using existing active free license'
-                }), 200
+                }
             
             user_id = str(user['_id'])
         else:
@@ -145,46 +196,56 @@ def request_free_license():
             {'$set': {'plan': 'free', 'updated_at': datetime.utcnow()}}
         )
         
-        return jsonify({
+        return {
             'success': True,
             'license_key': license_data['license_key'],
             'plan': license_data['plan'],
             'expires_at': license_data['expires_at'].isoformat(),
             'message': 'Free license generated successfully'
-        }), 201
+        }
     
     except Exception as e:
-        return jsonify({'error': f'Failed to generate free license: {str(e)}'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'Failed to generate free license: {str(e)}'
+        )
 
 
-@license_bp.route('/verify', methods=['POST'])
-def verify_license():
+@router.post("/verify", response_model=VerifyResponse)
+async def verify_license(data: VerifyLicenseRequest):
     """Verify license key"""
     try:
-        data = request.get_json()
-        
-        if not data or not data.get('license_key'):
-            return jsonify({'error': 'License key is required'}), 400
-        
-        license_key = data.get('license_key')
+        license_key = data.license_key
         
         # Verify format and signature
         is_valid, message = License.verify(license_key)
         
         if not is_valid:
-            return jsonify({'valid': False, 'message': message}), 400
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=message
+            )
         
         # Check in database
-        licenses_collection = get_licenses_collection()
+        db = get_db()
+        licenses_collection = db.licenses
         license_doc = licenses_collection.find_one({'license_key': license_key})
         
         if not license_doc:
-            return jsonify({'valid': False, 'message': 'License not found'}), 404
+            return {
+                'valid': False,
+                'message': 'License not found',
+                'license': None
+            }
         
         if license_doc['status'] != 'active':
-            return jsonify({'valid': False, 'message': 'License is not active'}), 400
+            return {
+                'valid': False,
+                'message': 'License is not active',
+                'license': None
+            }
         
-        return jsonify({
+        return {
             'valid': True,
             'message': 'License is valid',
             'license': {
@@ -192,20 +253,26 @@ def verify_license():
                 'expires_at': license_doc['expires_at'].isoformat(),
                 'status': license_doc['status']
             }
-        }), 200
+        }
     
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({'error': f'Verification failed: {str(e)}'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'Verification failed: {str(e)}'
+        )
 
 
-@license_bp.route('/my-licenses', methods=['GET'])
-@token_required
-def get_my_licenses(current_user):
+@router.get("/my-licenses", response_model=MyLicensesResponse)
+async def get_my_licenses(current_user: dict = Depends(get_current_user)):
     """Get all licenses for current user"""
     try:
         user_id = current_user['user_id']
         
-        licenses_collection = get_licenses_collection()
+        # Get database
+        db = get_db()
+        licenses_collection = db.licenses
         licenses = list(licenses_collection.find({'user_id': user_id}))
         
         license_list = []
@@ -219,10 +286,13 @@ def get_my_licenses(current_user):
                 'expires_at': lic['expires_at'].isoformat()
             })
         
-        return jsonify({
+        return {
             'licenses': license_list,
             'count': len(license_list)
-        }), 200
+        }
     
     except Exception as e:
-        return jsonify({'error': f'Failed to get licenses: {str(e)}'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'Failed to get licenses: {str(e)}'
+        )
